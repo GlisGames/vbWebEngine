@@ -1,0 +1,1 @@
+import { sound as PIXISound } from '@pixi/sound';
