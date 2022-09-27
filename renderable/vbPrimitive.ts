@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
+import { vb } from '@vb/vbUtils';
 
 
 /** The shape data to be passed to vbPrimitive */
@@ -95,4 +96,8 @@ export class vbPrimitive extends vbGraphicObjectBase(PIXI.Graphics) {
             }
         }
     }
+
+    static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
+        s.visible = true; s.color = vb.Green; s.alpha = 1; s.width = 2; return s;
+    })();
 }

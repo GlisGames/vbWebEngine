@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { Sprite, Container } from 'pixi.js'
+import { Sprite, Container } from 'pixi.js';
 import type { vbContainer } from './vbContainer';
 import { vb } from './vbUtils';
 
@@ -26,6 +26,8 @@ export type Styles = {
 export enum PivotTransformRule {
     TopLeft,
     Center,
+    TopMiddle,
+    BottomMiddle,
     Custom
 }
 
@@ -58,6 +60,7 @@ export interface vbGraphicObject extends Container {
      */
     get layer(): number;
     set layer(z: number);
+
     readonly parentContainer: vbContainer;
     sendToBack(): void;
     bringToFront(): void;
@@ -74,6 +77,13 @@ export interface vbGraphicObject extends Container {
      * @return if `styleJson` is undefined, return false
      */
     applyStyle(styleJson?: StyleElement): boolean;
+    /**
+     * Show a debug rectangle with `width` and `height`. \
+     * `width` and `height` from PixJS Container are dynamically changed based on the object itself, children and scale. \
+     * Therefore, the debugBox of some types whose sizes can change easily (e.g. Text) doesn't make too much sense.
+     */
+    get debugBox(): boolean;
+    set debugBox(enable: boolean);
 }
 /** Define "Class" type */
 export type TypeCons<T> = new (...args: any[]) => T;
@@ -83,16 +93,11 @@ export type TypeCons<T> = new (...args: any[]) => T;
  */
 export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: TOther) {
     return class GraphicObject extends Other implements vbGraphicObject {
-        static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
-            s.visible = true; s.color = vb.White; s.alpha = 0.06; return s;
-        })();
-        static _debugLineStyle = (() => { let s = new PIXI.LineStyle;
-            s.visible = true; s.color = vb.Red; s.alpha = 1; s.width = 2; return s;
-        })();
-
+        name = '';
         protected _enable = true;
         protected _pivotRule = PivotTransformRule.TopLeft;
-        name = '';
+        // For some reason, this debugBox cannot be a derived class (recursive dependency?)
+        protected _debugBox?: PIXI.Graphics;
         
         get enable() { return this._enable; }
         set enable(en: boolean) { this._enable = en; }
@@ -101,21 +106,15 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
         set pivotRule(rule: PivotTransformRule) {
             this._pivotRule = rule;
             if (this instanceof Sprite) {
-                let thisSprite = <Sprite>this;
-                if (rule == PivotTransformRule.TopLeft) {
-                    thisSprite.anchor.set(0);
-                }
-                else if (rule == PivotTransformRule.Center) {
-                    thisSprite.anchor.set(0.5);
+                setSpritePivotRule(this, rule);
+                // Since the sprite pivot rule only set the anchor
+                // we have to set pivot rule for debugBox as well or it won't be changed
+                if ((this._debugBox !== undefined) && this._debugBox.renderable) {
+                    setPivotRule(this._debugBox, rule, this.width, this.height);
                 }
             }
             else {
-                if (rule == PivotTransformRule.TopLeft) {
-                    this.pivot.set(0);
-                }
-                else if (rule == PivotTransformRule.Center) {
-                    this.pivot.set(this.width/2, this.height/2);
-                }
+                setPivotRule(this, rule, this.width, this.height);
             }
         }
 
@@ -152,6 +151,77 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
                 this.height = styleJson.wh[1];
             }
             return true;
+        }
+
+        // Different classes can have different debugBox style.
+        static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
+            s.visible = false; return s;
+        })();
+        static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
+            s.visible = true; s.color = vb.Blue; s.alpha = 1; s.width = 2; return s;
+        })();
+
+        get debugBox() {
+            return (this._debugBox !== undefined) && (this._debugBox.renderable);
+        }
+        set debugBox(enable: boolean) {
+            this._showDebugBox(enable, this.width, this.height);
+        }
+        protected _showDebugBox(enable: boolean, width: number, height: number) {
+            if (enable) {
+                if (this._debugBox === undefined) {
+                    let rect = new PIXI.Rectangle(0, 0, width, height);
+                    // Access the static variable by instance.
+                    let fillStyle = (<any>this.constructor)._debugFillStyle;
+                    let lineStyle = (<any>this.constructor)._debugLineStyle;
+                    this._debugBox = new PIXI.Graphics();
+                    this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);
+                    this._debugBox.zIndex = 9998;
+                    this.addChild(this._debugBox);
+                }
+                // update debugBox pivotRule
+                setPivotRule(this._debugBox, this.pivotRule, this.width, this.height);
+                this._debugBox.renderable = true;
+            }
+            else {
+                if (this._debugBox === undefined) return;
+                this._debugBox.renderable = false;
+            }
+        }
+    }
+}
+
+
+export function setPivotRule(obj: Container, rule: PivotTransformRule, width: number, height: number) {
+    switch (rule) {
+        case PivotTransformRule.TopLeft: {
+            obj.pivot.set(0); break;
+        }
+        case PivotTransformRule.Center: {
+            obj.pivot.set(width/2, height/2); break;
+        }
+        case PivotTransformRule.TopMiddle: {
+            obj.pivot.set(width/2, 0); break;
+        }
+        case PivotTransformRule.BottomMiddle: {
+            obj.pivot.set(width/2, height); break;
+        }
+    }
+}
+
+export function setSpritePivotRule(obj: Sprite, rule: PivotTransformRule) {
+    switch (rule) {
+        case PivotTransformRule.TopLeft: {
+            obj.anchor.set(0); break;
+        }
+        case PivotTransformRule.Center: {
+            obj.anchor.set(0.5); break;
+        }
+        case PivotTransformRule.TopMiddle: {
+            obj.anchor.set(0.5, 0); break;
+        }
+        case PivotTransformRule.BottomMiddle: {
+            obj.anchor.set(0.5, 1); break;
         }
     }
 }

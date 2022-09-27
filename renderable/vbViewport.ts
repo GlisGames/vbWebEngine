@@ -23,7 +23,7 @@ export class vbViewport extends vbContainer {
         else {
             super(obj.width, obj.height);
             let rect = new vbRectangle(obj.width, obj.height);
-            this.area = new vbPrimitive(rect.fill(0, 0.5));
+            this.area = new vbPrimitive(rect.fill(0, 0.3));
         }
         this.obj = obj;
         this.addObj(this.area, 1);

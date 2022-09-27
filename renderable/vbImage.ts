@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 import { Sprite, AnimatedSprite } from 'pixi.js'
 import { vbGraphicObjectBase, StyleElement } from '../vbGraphicObject';
 import { vbGame } from '../vbGame';
+import { vb } from '@vb/vbUtils';
 
 
 interface ImageStyleElement extends StyleElement {
@@ -16,6 +17,10 @@ export class vbImage extends vbGraphicObjectBase(Sprite) {
         }
         return true;
     }
+
+    static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
+        s.visible = true; s.color = vb.Yellow; s.alpha = 1; s.width = 2; return s;
+    })();
 }
 
 
@@ -36,4 +41,8 @@ export class vbSequence extends vbGraphicObjectBase(AnimatedSprite) {
     update(deltaFrame: number) {
         AnimatedSprite.prototype.update.call(this, deltaFrame);
     }
+
+    static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
+        s.visible = true; s.color = vb.Orange; s.alpha = 1; s.width = 2; return s;
+    })();
 }

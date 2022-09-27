@@ -3,8 +3,8 @@ import * as PIXI from 'pixi.js';
 
 export type AssetList = {
     img: string[],
-    anim_json: string[],
-    anim_textures: string[]
+    img_json: string[],
+    anim_json: string[]
 }
 
 
@@ -28,14 +28,18 @@ export const load_jsons = (filenames: string[]) => {
 }
 
 
-export const load_textures = (loader: PIXI.Loader, assets: AssetList) => {
+/** Load all the assets we need using PIXI.Loader */
+export const load_assets = (loader: PIXI.Loader, assets: AssetList) => {
     // temporarily hide annoying texture cache warning
     // https://www.html5gamedevs.com/topic/42438-warging-texture-added-to-the-cache-with-an-id-0-that-already-had-an-entry-when-using-spritesheetparse/
     let console_warn = console.warn;
     console.warn = () => {};
-    // load all textures;
+    
     return new Promise<void>((resolve) => {
         for (let filename of assets.img) {
+            loader.add(filename);
+        }
+        for (let filename of assets.img_json) {
             loader.add(filename);
         }
         for (let filename of assets.anim_json) {
@@ -53,11 +57,26 @@ export const load_textures = (loader: PIXI.Loader, assets: AssetList) => {
 
 export const get_textureMap = (loader: PIXI.Loader, assets: AssetList) => {
     let textureMap: { [key: string]: PIXI.Texture } = {};
+    // get textures from each of the single image
     for (let filename of assets.img) {
         let filename_stripped = filename.split('/')[1];
         let tex = loader.resources[filename].texture;
         if (tex != undefined) {
             textureMap[filename_stripped] = tex;
+        }
+    }
+    // get textures from spritesheet
+    for (let filename of assets.img_json) {
+        let sheet = loader.resources[filename].spritesheet;
+        if (sheet == undefined) continue;
+        // IDK why, but the type of sheet.data is incorrect,
+        // it's not ISpritesheetData, it's just an object.
+        // the type of frames is not Dict<ISpritesheetFrameData>, it's just an array of object
+        let frames = <any[]><unknown>sheet.data.frames;
+        for (let i = 0; i < frames.length; i++) {
+            let frame_filename = frames[i]['filename'];
+            let tex = sheet.textures[i];
+            textureMap[frame_filename] = tex;
         }
     }
     return textureMap;
@@ -76,11 +95,9 @@ export const get_multipack_sequenceMap = (loader: PIXI.Loader, assets: AssetList
     for (let filename of assets.anim_json) {
         let sheet = loader.resources[filename].spritesheet;
         if (sheet == undefined) continue;
-        // IDK why, but the type of sheet.data is incorrect,
-        // it's not ISpritesheetData, it's just an object.
-        // the type of frames is not Dict<ISpritesheetFrameData>, it's just an array of object
         let frames = <any[]><unknown>sheet.data.frames;
         for (let i = 0; i < frames.length; i++) {
+            // filename of a frame is like 'SequenceName/SequenceName_001.png'
             let seq_filename_segs = frames[i]['filename'].split('/');
             // left side of slash
             let seq_name = seq_filename_segs[0];
@@ -89,10 +106,8 @@ export const get_multipack_sequenceMap = (loader: PIXI.Loader, assets: AssetList
             if (!(seq_name in sequenceMap_tmp)) {
                 sequenceMap_tmp[seq_name] = [];
             }
-            let tex = sheet?.textures[i];
-            if (tex != undefined) {
-                sequenceMap_tmp[seq_name].push([seq_filename, tex]);
-            }
+            let tex = sheet.textures[i];
+            sequenceMap_tmp[seq_name].push([seq_filename, tex]);
         }
     }
 

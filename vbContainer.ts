@@ -1,16 +1,15 @@
 import * as PIXI from 'pixi.js';
 import { Container, ParticleContainer } from 'pixi.js';
-import { PivotTransformRule, vbGraphicObject, vbGraphicObjectBase, StyleList } from './vbGraphicObject'
+import { PivotTransformRule, vbGraphicObject, vbGraphicObjectBase, StyleList, setPivotRule } from './vbGraphicObject'
 import { getTotalMS } from './vbGame';
 import { vbTweenMap } from './vbTween';
-import { vbPrimitive, vbRectangle } from './renderable/vbPrimitive';
 import { vb } from './vbUtils'
 import { getLanguageObject, vbLanguageObject } from './renderable/vbText';
 
 
 /**
- * `width` and `height` from PixJS Container are dynamically changed based on the object itself, children and scale. \
- * So a `desiredSize` can better help with designing the layout, setting the pivot point etc.
+ * As is discussed before ( @see vbGraphicObject.debugBox ), `width` and `height` can be dynamically changed, \
+ * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
 export class vbContainer extends vbGraphicObjectBase(Container) implements vbLanguageObject {
     /** "Send to Back" layer */
@@ -20,7 +19,6 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
 
     tweens = new vbTweenMap();
     desiredSize = new PIXI.Point();
-    protected _debugBox?: vbPrimitive;
 
     constructor(desiredWidth?: number, desiredHeight?: number) {
         super();
@@ -43,22 +41,20 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
             this.desiredSize.x = width;
             this.desiredSize.y = height;
         }
+        // If there's a debugBox, redraw with new size
         if (this._debugBox !== undefined) {
             this._debugBox.clear();
-            let rect = new vbRectangle(this.desiredSize.x, this.desiredSize.y);
-            this._debugBox.appendDraw(rect.fill(vb.White, 0.08).line(2, vb.Red));
+            let rect = new PIXI.Rectangle(0, 0, this.desiredSize.x, this.desiredSize.y);
+            let fillStyle = (<any>this.constructor)._debugFillStyle;
+            let lineStyle = (<any>this.constructor)._debugLineStyle;
+            this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);
         }
     }
 
     get pivotRule() { return this._pivotRule; }
     set pivotRule(rule: PivotTransformRule) {
         this._pivotRule = rule;
-        if (rule == PivotTransformRule.TopLeft) {
-            this.pivot.set(0);
-        }
-        else if (rule == PivotTransformRule.Center) {
-            this.pivot.set(this.desiredSize.x/2, this.desiredSize.y/2);
-        }
+        setPivotRule(this, rule, this.desiredSize.x, this.desiredSize.y);
     }
 
     addObj(vbObj: vbGraphicObject, layer: number, name = '', style?: StyleList) {
@@ -145,6 +141,12 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
         }
     }
 
+    static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
+        s.visible = true; s.color = vb.White; s.alpha = 0.08; return s;
+    })();
+    static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
+        s.visible = true; s.color = vb.Red; s.alpha = 1; s.width = 2; return s;
+    })();
     /**
      * Show a debug rectangle with desiredSize
      */
@@ -152,17 +154,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
         return (this._debugBox !== undefined) && (this._debugBox.renderable);
     }
     set debugBox(enable: boolean) {
-        if (enable) {
-            if (this._debugBox !== undefined) return;
-            let rect = new vbRectangle(this.desiredSize.x, this.desiredSize.y);
-            this._debugBox = new vbPrimitive(rect.fill(vb.White, 0.08).line(2, vb.Red));
-            this.addObj(this._debugBox, vbContainer.maxLayer-1);
-        }
-        else {
-            if (this._debugBox === undefined) return;
-            this._debugBox.enable = false;
-            this._debugBox.renderable = false;
-        }
+        this._showDebugBox(enable, this.desiredSize.x, this.desiredSize.y);
     }
 }
 

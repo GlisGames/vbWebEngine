@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { load_json, load_jsons, get_multipack_sequenceMap, load_textures, get_textureMap, AssetList } from './misc/vbLoader'
+import { load_json, load_jsons, get_multipack_sequenceMap, load_assets, get_textureMap, AssetList } from './misc/vbLoader'
 import { Styles, vbGraphicObject } from './vbGraphicObject';
 import { vbContainer } from './vbContainer';
 import { vbState } from './vbState';
@@ -24,17 +24,19 @@ export abstract class vbGame {
         sharedTicker: true,
         antialias: true
     });
-    static desiredResolution = new PIXI.Point();
-    static textureMap: { [name: string]: PIXI.Texture } = {};
-    static sequenceMap: { [name: string]: PIXI.Texture[] } = {};
-    static currentStyle = {} as Styles;
-    static styleMap: { [name: string]: Styles } = {};
     static currentState = {} as vbState;
     static states: { [stateType: number]: vbState } = {};
+    
+    static textureMap: { [name: string]: PIXI.Texture } = {};
+    static sequenceMap: { [name: string]: PIXI.Texture[] } = {};
+
+    static desiredResolution = new PIXI.Point();
+    static currentStyle = {} as Styles;
+    static styleMap: { [name: string]: Styles } = {};
     static _txtFPS?: FPSCounter;
 
 
-    static async loadAssets() {
+    static async initAssets() {
         // set the whole screen interactive so it can be clicked
         this.app.stage.name = 'MainStage';
         this.app.stage.interactive = true;
@@ -42,10 +44,10 @@ export abstract class vbGame {
         // file list json has all the assets that need to be fetched
         let assets = <AssetList>(await load_json('list.json'));
         let loader = this.app.loader;
+        await load_assets(loader, assets);
+
         this.desiredResolution.x = 1280; this.desiredResolution.y = 720;
         this.setResolution();
-
-        await load_textures(loader, assets);
         this.textureMap = get_textureMap(loader, assets);
         this.sequenceMap = get_multipack_sequenceMap(loader, assets);
     };
