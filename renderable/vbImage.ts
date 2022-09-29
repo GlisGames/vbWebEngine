@@ -25,7 +25,7 @@ export class vbImage extends vbGraphicObjectBase(Sprite) {
 
 
 export class vbSequence extends vbGraphicObjectBase(AnimatedSprite) {
-    /** @param textures - An array of PIXI.Texture or frame objects that make up the animation. */
+    /** @param [textures] An array of PIXI.Texture or frame objects that make up the animation. */
     constructor(textures: PIXI.Texture[]) {
         super(textures, false);
     }

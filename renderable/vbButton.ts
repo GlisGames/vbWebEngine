@@ -10,31 +10,31 @@ import { vbPrimitive } from './vbPrimitive';
  * A utility class to easily set or toggle pointer events, with default effect.
  */
 export interface vbInteractiveObject extends vbGraphicObject {
-    _pointerdown_fn?: (e: PIXI.InteractionEvent) => void;
-    _pointerup_fn?: (e: PIXI.InteractionEvent) => void;
-    _pointerover_fn?: (e: PIXI.InteractionEvent) => void;
-    _pointerout_fn?: (e: PIXI.InteractionEvent) => void;
+    readonly pointerdownFn?: (e: PIXI.InteractionEvent) => void;
+    readonly pointerupFn?: (e: PIXI.InteractionEvent) => void;
+    readonly pointeroverFn?: (e: PIXI.InteractionEvent) => void;
+    readonly pointeroutFn?: (e: PIXI.InteractionEvent) => void;
     /**
      * Use default color overlay effect when the pointer hovers over it.
      */
     defaultHoverEffect(color: number, alpha: number): this;
     /**
-     * @param fn - Set pointerdown event.
+     * @param [fn] Set pointerdown event.
      * If it's a boolean and the function has already been given, the event will be toggled on/off.
      */
     setPointerdown(fn: ((e: PIXI.InteractionEvent) => void) | boolean): this;
     /**
-     * @param fn - Set pointerup event.
+     * @param [fn] Set pointerup event.
      * If it's a boolean and the function has already been given, the event will be toggled on/off.
      */
     setPointerup(fn: ((e: PIXI.InteractionEvent) => void) | boolean): this;
     /**
-     * @param fn - Set pointerover event.
+     * @param [fn] Set pointerover event.
      * If it's a boolean and the function has already been given, the event will be toggled on/off.
      */
     setPointerover(fn: ((e: PIXI.InteractionEvent) => void) | boolean): this;
     /**
-     * @param fn - Set pointerout event.
+     * @param [fn] Set pointerout event.
      * If it's a boolean and the function has already been given, the event will be toggled on/off.
      */
     setPointerout(fn: ((e: PIXI.InteractionEvent) => void) | boolean): this;
@@ -46,10 +46,14 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
     return class InteractiveObject extends Other implements vbInteractiveObject {
         interactive = true;
         protected _defaultHoverFilter = new Filter.ColorOverlayFilter(0, 0);
-        _pointerdown_fn?: (e: PIXI.InteractionEvent) => void;
-        _pointerup_fn?: (e: PIXI.InteractionEvent) => void;
-        _pointerover_fn?: (e: PIXI.InteractionEvent) => void;
-        _pointerout_fn?: (e: PIXI.InteractionEvent) => void;    
+        protected _pointerdown_fn?: (e: PIXI.InteractionEvent) => void;
+        protected _pointerup_fn?: (e: PIXI.InteractionEvent) => void;
+        protected _pointerover_fn?: (e: PIXI.InteractionEvent) => void;
+        protected _pointerout_fn?: (e: PIXI.InteractionEvent) => void;
+        get pointerdownFn() { return this._pointerdown_fn; }
+        get pointerupFn() { return this._pointerup_fn; }
+        get pointeroverFn() { return this._pointerover_fn; }
+        get pointeroutFn() { return this._pointerout_fn; }
         
         defaultHoverEffect(color: number, alpha: number) {
             if (this.filters === null) {

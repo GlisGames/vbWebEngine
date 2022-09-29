@@ -14,10 +14,10 @@ def get_img_list():
     filelist = list(pathlib.Path(IMG_PATH).iterdir())
     # for single image files
     imglist = []
-    # for packed textures file
+    # for texture atlas file
     _jsonlist = []
     jsonlist = []
-    # firstly find all the json files for packed textures
+    # firstly find all the json files for texture atlas
     # the corresponding images should not be included in 'img'
     for filename in filelist:
         if filename.suffix == '.json':
@@ -25,7 +25,7 @@ def get_img_list():
             _jsonlist.append(filename.stem)
             # complete path with suffix
             jsonlist.append(str(pathlib.PurePosixPath(filename)))
-    # find all images, excluding packed textures
+    # find all images, excluding texture atlas
     for filename in filelist:
         if filename.suffix == '.json':
             continue

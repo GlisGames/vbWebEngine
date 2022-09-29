@@ -3,8 +3,9 @@ import { load_json, load_jsons, get_multipack_sequenceMap, load_assets, get_text
 import { Styles, vbGraphicObject } from './vbGraphicObject';
 import { vbContainer } from './vbContainer';
 import { vbState } from './vbState';
-import { getLanguageObject, vbText } from './renderable/vbText';
+import { vbText } from './renderable/vbText';
 import { vb } from './vbUtils'
+import { vbTimer, vbTimerManager } from './vbTimer';
 
 
 /** Override the main stage type to vbContainer */
@@ -24,6 +25,8 @@ export abstract class vbGame {
         sharedTicker: true,
         antialias: true
     });
+    static timers = new vbTimerManager();
+
     static currentState = {} as vbState;
     static states: { [stateType: number]: vbState } = {};
     
@@ -33,7 +36,6 @@ export abstract class vbGame {
     static desiredResolution = new PIXI.Point();
     static currentStyle = {} as Styles;
     static styleMap: { [name: string]: Styles } = {};
-    static _txtFPS?: FPSCounter;
 
 
     static async initAssets() {
@@ -55,6 +57,27 @@ export abstract class vbGame {
     static addState(state: vbState) {
         this.states[state.stateType] = state;
         this.app.stage.addObj(state.container, 1);
+    }
+
+    /**
+     * State timers are running only when this is the current state.
+     * 
+     * @param [stateType] If it's not specified, add to the current state.
+     */
+    static addStateTimer(timer: vbTimer, stateType?: number) {
+        if (stateType !== undefined) {
+            this.states[stateType].timers.addTimer(timer);
+        }
+        else {
+            this.currentState.timers.addTimer(timer);
+        }
+    }
+
+    /**
+     * Global timers, running at any time.
+     */
+    static addGlobalTimer(timer: vbTimer) {
+        this.timers.addTimer(timer);
     }
 
     /**
@@ -98,6 +121,7 @@ export abstract class vbGame {
         });
     };
 
+    protected static _txtFPS?: FPSCounter;
     static showFPS() {
         if (this._txtFPS !== undefined) return;
         this._txtFPS = new FPSCounter();
@@ -124,8 +148,8 @@ export function getFPS() {
 /** Show the average over N_FRAME */
 class FPSCounter extends vbText {
     static N_FRAME = 10;
-    totalFrames = 0;
-    totalFPS = 0;
+    protected totalFrames = 0;
+    protected totalFPS = 0;
 
     constructor() {
         super('Arial', 20, vb.Green);

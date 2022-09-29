@@ -46,8 +46,8 @@ export class vbCircle extends vbShape {
 export class vbPolygon extends vbShape {
     shape: PIXI.Polygon;
     /**
-     * @param closeStroke - If set to false, it's polygonal chain instead of polygon
-     * @param points - Array of (x, y)
+     * @param [closeStroke] If set to false, it's polygonal chain instead of polygon
+     * @param [points] Array of (x, y)
      */
     constructor(closeStroke: boolean, points: PIXI.Point[] | number[]) {
         super();

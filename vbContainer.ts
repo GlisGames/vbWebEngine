@@ -98,7 +98,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
     /**
      * Will be called when it enters any state, recursively call all containers. \
      * If there's no need for recursive call, the derived class don't have to call super.enterState.
-     * @param stateType - State type enum as number
+     * @param [stateType] State type enum as number
      */
     enterState(stateType: number) {
         for (let obj of this.children) {

@@ -65,7 +65,7 @@ export const get_textureMap = (loader: PIXI.Loader, assets: AssetList) => {
             textureMap[filename_stripped] = tex;
         }
     }
-    // get textures from spritesheet
+    // get textures from texture atlas
     for (let filename of assets.img_json) {
         let sheet = loader.resources[filename].spritesheet;
         if (sheet == undefined) continue;

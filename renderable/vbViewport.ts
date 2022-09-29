@@ -12,7 +12,7 @@ export class vbViewport extends vbContainer {
     area: vbGraphicObject;
 
     /**
-     * @param area - The area of the viewport, usually it's a primitive shape.
+     * @param [area] The area of the viewport, usually it's a primitive shape.
      *               If it's not specified, create a rectangle with the size of `obj`.
      */
     constructor(obj: vbGraphicObject, area?: vbGraphicObject) {

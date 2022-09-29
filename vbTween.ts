@@ -31,10 +31,10 @@ export class vbTweenMap extends TWEEN.Group {
     protected twmap: Map<string, vbTween<UnknownProps>> | undefined;
 
     /**
-     * @param name - Cannot be duplicated
-     * @param obj - 
-     * @param to - 
-     * @param duration - 
+     * @param [name] Cannot be duplicated
+     * @param [obj] Owner object of the properties in `to`
+     * @param [to] A collection of properties from `obj`.
+     * @param [duration] Time in ms.
      */
     addTween<T extends UnknownProps>(name: string, obj: T, to: UnknownProps, duration: number) {
         if (this.twmap === undefined) {

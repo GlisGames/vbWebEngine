@@ -68,7 +68,7 @@ export interface vbGraphicObject extends Container {
      * PixiJS uses deltaFrame instead of delatTime in milliseconds as the parameter of update function.
      * But sometimes we need delatTime, or even the total time since game started (for Tween.js),
      * Thus we could call `getDeltaMS`, `getTotalMS` etc, from vbGame. 
-     * @param deltaFrame - Number of (desired) frames since last call.
+     * @param [deltaFrame] Number of (desired) frames since last call.
      *        It is calculated based on the target FPS (by default is 60). \
      *        e.g. If the real FPS is 45, deltaFrame is around 1.5
      */
@@ -154,10 +154,10 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
         }
 
         // Different classes can have different debugBox style.
-        static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
+        protected static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
             s.visible = false; return s;
         })();
-        static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
+        protected static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
             s.visible = true; s.color = vb.Blue; s.alpha = 1; s.width = 2; return s;
         })();
 

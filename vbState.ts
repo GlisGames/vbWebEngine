@@ -1,5 +1,6 @@
 import { vbContainer } from "./vbContainer";
-import { vbGame } from "./vbGame";
+import { getDeltaMS, vbGame } from "./vbGame";
+import { vbTimerManager } from "./vbTimer";
 
 
 export class vbState {
@@ -7,18 +8,21 @@ export class vbState {
     protected nextStateType = 0;
     stateType: number;
     container: vbContainer;
+    timers: vbTimerManager;
 
     constructor(stateType: number, name: string) {
         this.stateType = stateType;
         this.container = new vbContainer();
         this.container.name = name;
         this.container.enable = false;
+        this.timers = new vbTimerManager();
     }
 
     enter() {}
     exit() {}
     update(deltaFrame: number) {
-        
+        vbGame.timers.update(getDeltaMS());
+        this.timers.update(getDeltaMS());
     }
 
     setNextState(stateType: number) {
@@ -27,6 +31,7 @@ export class vbState {
 
     run(deltaFrame: number) {
         if (this.firstIn) {
+            this.nextStateType = 0;
             this.firstIn = false;
             this.container.enable = true;
             this.container.renderable = true;
