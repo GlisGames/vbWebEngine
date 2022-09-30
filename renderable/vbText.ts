@@ -1,22 +1,30 @@
 import * as PIXI from 'pixi.js';
-import { PivotTransformRule, StyleElement, vbGraphicObject, vbGraphicObjectBase } from '@vb/vbGraphicObject';
+import { PivotTransformRule, StyleItem, vbGraphicObject, vbGraphicObjectBase } from '@vb/vbGraphicObject';
 import { vb } from '@vb/vbUtils';
 
 
-export interface vbLanguageObject extends vbGraphicObject {
-    setLanguage(lang: string): void;
+export type LocalizedItem = {
+
 }
 
-export function getLanguageObject(obj: vbGraphicObject) {
-    let langObj = <vbLanguageObject>obj;
-    if (langObj.setLanguage !== undefined) {
-        return langObj;
+export type LocalizedTable = {
+    
+}
+
+export interface vbLocaleObject extends vbGraphicObject {
+    setLocale(lang: string): void;
+}
+
+export function getLocaleObject(obj: vbGraphicObject) {
+    let locObj = <vbLocaleObject>obj;
+    if (locObj.setLocale !== undefined) {
+        return locObj;
     }
     else return undefined;
 }
 
 
-export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLanguageObject {
+export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLocaleObject {
     constructor(fontFamily: string, fontSize: number, color?: number, text?: string) {
         let style = new PIXI.TextStyle();
         style.fontFamily = fontFamily;
@@ -25,13 +33,13 @@ export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLanguage
         super(text, style);
     }
 
-    applyStyle(styleJson: StyleElement) {
-        if (!super.applyStyle(styleJson)) return false;
+    applyStyle(item: StyleItem) {
+        if (!super.applyStyle(item)) return false;
         
         return true;
     }
 
-    setLanguage(lang: string) {
+    setLocale(lang: string) {
 
     }
 }
@@ -40,7 +48,7 @@ export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLanguage
 /**
  * Label is based on an GraphicObject with optional text.
  */
-export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLanguageObject {
+export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLocaleObject {
     bg: T;
     txt?: vbText;
 
@@ -84,13 +92,13 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
         this.bg.update(deltaFrame);
     }
 
-    applyStyle(styleJson: StyleElement) {
-        if (!super.applyStyle(styleJson)) return false;
+    applyStyle(item: StyleItem) {
+        if (!super.applyStyle(item)) return false;
         
         return true;
     }
 
-    setLanguage(lang: string) {
+    setLocale(lang: string) {
 
     }
 }

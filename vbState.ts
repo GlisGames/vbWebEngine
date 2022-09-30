@@ -1,5 +1,5 @@
 import { vbContainer } from "./vbContainer";
-import { getDeltaMS, vbGame } from "./vbGame";
+import { vbgame } from "./vbGame";
 import { vbTimerManager } from "./vbTimer";
 
 
@@ -18,11 +18,12 @@ export class vbState {
         this.timers = new vbTimerManager();
     }
 
+    get name() { return this.container.name; }
     enter() {}
     exit() {}
     update(deltaFrame: number) {
-        vbGame.timers.update(getDeltaMS());
-        this.timers.update(getDeltaMS());
+        vbgame.timers.update(vbgame.DeltaMS);
+        this.timers.update(vbgame.DeltaMS);
     }
 
     setNextState(stateType: number) {

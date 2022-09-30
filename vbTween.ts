@@ -1,5 +1,5 @@
 import * as TWEEN from '@tweenjs/tween.js'
-import { getTotalMS } from './vbGame'
+import { vbgame } from './vbGame'
 
 
 type UnknownProps = Record<string, any>;
@@ -13,15 +13,15 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
     }
 
     start() {
-        return super.start(getTotalMS());
+        return super.start(vbgame.TotalMS);
     }
 
     pause() {
-        return super.pause(getTotalMS());
+        return super.pause(vbgame.TotalMS);
     }
 
     resume() {
-        return super.resume(getTotalMS());
+        return super.resume(vbgame.TotalMS);
     }
 }
 

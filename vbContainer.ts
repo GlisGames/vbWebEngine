@@ -1,17 +1,17 @@
 import * as PIXI from 'pixi.js';
 import { Container, ParticleContainer } from 'pixi.js';
 import { PivotTransformRule, vbGraphicObject, vbGraphicObjectBase, StyleList, setPivotRule } from './vbGraphicObject'
-import { getTotalMS } from './vbGame';
+import { vbgame } from './vbGame';
 import { vbTweenMap } from './vbTween';
 import { vb } from './vbUtils'
-import { getLanguageObject, vbLanguageObject } from './renderable/vbText';
+import { getLocaleObject, vbLocaleObject } from './renderable/vbText';
 
 
 /**
  * As is discussed before ( @see vbGraphicObject.debugBox ), `width` and `height` can be dynamically changed, \
  * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
-export class vbContainer extends vbGraphicObjectBase(Container) implements vbLanguageObject {
+export class vbContainer extends vbGraphicObjectBase(Container) implements vbLocaleObject {
     /** "Send to Back" layer */
     static readonly minLayer = -9999;
     /** "Bring to Front" layer */
@@ -57,13 +57,14 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
         setPivotRule(this, rule, this.desiredSize.x, this.desiredSize.y);
     }
 
-    addObj(vbObj: vbGraphicObject, layer: number, name = '', style?: StyleList) {
+    addObj(vbObj: vbGraphicObject, layer: number, name = '', useStyle = false) {
         this.addChild(vbObj);
         vbObj.layer = layer;
         if (name != '') {
             vbObj.name = name;
         }
-        if (style !== undefined) {
+        if (useStyle) {
+            let style = vbgame.currentStyle;
             vbObj.applyStyle(style[vbObj.name]);
         }
         return this;
@@ -109,7 +110,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
     }
 
     update(deltaFrame: number) {
-        this.tweens.update(getTotalMS());
+        this.tweens.update(vbgame.TotalMS);
         for (let obj of this.children) {
             let vbObj = <vbGraphicObject>obj;
             if (!vbObj.enable) continue;
@@ -123,6 +124,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
     applyChildrenStyle(style: StyleList) {
         for (let obj of this.children) {
             let vbObj = <vbGraphicObject>obj;
+            if (vbObj.applyStyle === undefined) continue;
             vbObj.applyStyle(style[vbObj.name]);
             if (!(vbObj instanceof vbContainer)) continue;
             let container = <vbContainer>obj;
@@ -133,11 +135,11 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLan
     /**
      * Recursively set language to all language objects.
      */
-    setLanguage(lang: string) {
+    setLocale(lang: string) {
         for (let obj of this.children) {
             let vbObj = <vbGraphicObject>obj;
-            let langObj = getLanguageObject(vbObj);
-            langObj?.setLanguage(lang);
+            let locObj = getLocaleObject(vbObj);
+            locObj?.setLocale(lang);
         }
     }
 

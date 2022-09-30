@@ -1,19 +1,19 @@
 import * as PIXI from 'pixi.js';
 import { Sprite, AnimatedSprite } from 'pixi.js'
-import { vbGraphicObjectBase, StyleElement } from '../vbGraphicObject';
-import { vbGame } from '../vbGame';
+import { vbGraphicObjectBase, StyleItem } from '@vb/vbGraphicObject';
+import { vbgame } from '@vb/vbGame';
 import { vb } from '@vb/vbUtils';
 
 
-interface ImageStyleElement extends StyleElement {
+interface ImageStyleItem extends StyleItem {
     /** texture name */
     tex?: string;
 }
 export class vbImage extends vbGraphicObjectBase(Sprite) {
-    applyStyle(styleJson: ImageStyleElement) {
-        if (!super.applyStyle(styleJson)) return false;
-        if (styleJson.tex !== undefined) {
-            this.texture = vbGame.textureMap[styleJson.tex];
+    applyStyle(item: ImageStyleItem) {
+        if (!super.applyStyle(item)) return false;
+        if (item.tex !== undefined) {
+            this.texture = vbgame.textureMap[item.tex];
         }
         return true;
     }

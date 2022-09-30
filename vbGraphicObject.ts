@@ -4,25 +4,6 @@ import type { vbContainer } from './vbContainer';
 import { vb } from './vbUtils';
 
 
-/** A single style element for a vbGraphicObject */
-export type StyleElement = {
-    /** position [x, y] */
-    xy: number[],
-    /** scale [x, y] */
-    s?: number[],
-    /** width and height [w, h] */
-    wh?: number[],
-}
-export type StyleList = {
-    /** Object name */
-    [name: string]: StyleElement
-}
-/** Root containers hold all style elements of children objects */
-export type Styles = {
-    /** Root container name, could be state, GUI, etc. */
-    [rootName: string]: StyleList
-}
-
 export enum PivotTransformRule {
     TopLeft,
     Center,
@@ -30,6 +11,21 @@ export enum PivotTransformRule {
     BottomMiddle,
     Custom
 }
+
+/** A single style element for a vbGraphicObject */
+export type StyleItem = {
+    /** position [x, y] */
+    xy: [number, number],
+    /** scale */
+    s?: number,
+    /** width and height [w, h] */
+    wh?: [number, number],
+}
+export type StyleList = {
+    /** Object name */
+    [name: string]: StyleItem
+}
+
 
 /**
  * vbEngine base class, inherited from Pixi.Js Container
@@ -74,9 +70,9 @@ export interface vbGraphicObject extends Container {
      */
     update(deltaFrame: number): void;
     /**
-     * @return if `styleJson` is undefined, return false
+     * @return if `item` is undefined, return false
      */
-    applyStyle(styleJson?: StyleElement): boolean;
+    applyStyle(item?: StyleItem): boolean;
     /**
      * Show a debug rectangle with `width` and `height`. \
      * `width` and `height` from PixJS Container are dynamically changed based on the object itself, children and scale. \
@@ -138,17 +134,16 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
         }
 
         update(deltaFrame: number) {}
-        applyStyle(styleJson?: StyleElement) {
-            if (styleJson === undefined) return false;
-            this.x = styleJson.xy[0];
-            this.y = styleJson.xy[1];
-            if (styleJson.s !== undefined) {
-                this.scale.x = styleJson.s[0];
-                this.scale.y = styleJson.s[1];
+        applyStyle(item?: StyleItem) {
+            if (item === undefined) return false;
+            this.x = item.xy[0];
+            this.y = item.xy[1];
+            if (item.s !== undefined) {
+                this.scale.set(item.s);
             }
-            if (styleJson.wh !== undefined) {
-                this.width = styleJson.wh[0];
-                this.height = styleJson.wh[1];
+            if (item.wh !== undefined) {
+                this.width = item.wh[0];
+                this.height = item.wh[1];
             }
             return true;
         }

@@ -1,17 +1,19 @@
+import { StyleList } from '@vb/vbGraphicObject';
 import * as PIXI from 'pixi.js';
 
 
 export type AssetList = {
     img: string[],
     img_json: string[],
-    anim_json: string[]
+    anim_json: string[],
+    style: string[]
 }
 
 
 /**
  * Load a single json
  */
-export const load_json = (filename: string) => {
+export function load_json(filename: string) {
     return fetch(filename)
         .then(response => response.json());
 }
@@ -19,7 +21,7 @@ export const load_json = (filename: string) => {
 /**
  * Load multiple json files
  */
-export const load_jsons = (filenames: string[]) => {
+export function load_jsons(filenames: string[]) {
     return Promise.all(
         filenames.map((filename: string) => {
             return fetch(filename).then(response => response.json());
@@ -29,7 +31,7 @@ export const load_jsons = (filenames: string[]) => {
 
 
 /** Load all the assets we need using PIXI.Loader */
-export const load_assets = (loader: PIXI.Loader, assets: AssetList) => {
+export function load_assets(loader: PIXI.Loader, assets: AssetList) {
     // temporarily hide annoying texture cache warning
     // https://www.html5gamedevs.com/topic/42438-warging-texture-added-to-the-cache-with-an-id-0-that-already-had-an-entry-when-using-spritesheetparse/
     let console_warn = console.warn;
@@ -45,6 +47,9 @@ export const load_assets = (loader: PIXI.Loader, assets: AssetList) => {
         for (let filename of assets.anim_json) {
             loader.add(filename);
         }
+        for (let filename of assets.style) {
+            loader.add(filename);
+        }
 
         loader.load(() => {
             // recover
@@ -55,7 +60,7 @@ export const load_assets = (loader: PIXI.Loader, assets: AssetList) => {
 }
 
 
-export const get_textureMap = (loader: PIXI.Loader, assets: AssetList) => {
+export function get_textureMap(loader: PIXI.Loader, assets: AssetList) {
     let textureMap: { [key: string]: PIXI.Texture } = {};
     // get textures from each of the single image
     for (let filename of assets.img) {
@@ -85,7 +90,7 @@ export const get_textureMap = (loader: PIXI.Loader, assets: AssetList) => {
 /**
  * Pixi js doesn't support multi-pack spritesheet at the moement, so we have to manually rearrange
  */
-export const get_multipack_sequenceMap = (loader: PIXI.Loader, assets: AssetList) => {
+export function get_multipack_sequenceMap(loader: PIXI.Loader, assets: AssetList) {
     /**
      * key: name of the sequence \
      * value: tuple, filename of a sequence frame and the corresponding texture \
@@ -120,3 +125,15 @@ export const get_multipack_sequenceMap = (loader: PIXI.Loader, assets: AssetList
     }
     return sequenceMap;
 };
+
+
+export function get_styleMap(loader: PIXI.Loader, assets: AssetList) {
+    let styleMap: { [name: string]: StyleList } = {}
+    for (let filename of assets.style) {
+        // remove suffix
+        let filename_stripped = filename.split('/')[1];
+        filename_stripped = filename_stripped.split('.')[0];
+        styleMap[filename_stripped] = loader.resources[filename].data;
+    }
+    return styleMap;
+}

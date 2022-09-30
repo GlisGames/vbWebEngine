@@ -6,8 +6,10 @@ import pathlib
 os.chdir('assets')
 IMG_PATH = 'img'
 ANIMATION_PATH = 'animation'
+SPINE_PATH = 'spine'
 SOUND_PATH = 'sound'
 FONT_PATH = 'font'
+STYLE_PATH = 'style'
 
 
 def get_img_list():
@@ -43,10 +45,18 @@ def get_animation_list():
             jsonlist.append(str(pathlib.PurePosixPath(filename)))
     return jsonlist
 
+def get_style_list():
+    filelist = list(pathlib.Path(STYLE_PATH).iterdir())
+    jsonlist = []
+    for filename in filelist:
+        jsonlist.append(str(pathlib.PurePosixPath(filename)))
+    return jsonlist
+
 
 if __name__ == '__main__':
     assets = {}
     assets['img'], assets['img_json'] = get_img_list()
     assets['anim_json'] = get_animation_list()
+    assets['style'] = get_style_list()
     with open('list.json', 'w') as f:
         json.dump(assets, f, indent=4)
