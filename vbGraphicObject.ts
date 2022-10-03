@@ -1,14 +1,15 @@
 import * as PIXI from 'pixi.js';
 import { Sprite, Container } from 'pixi.js';
 import type { vbContainer } from './vbContainer';
-import { vb } from './vbUtils';
+import { c } from './vbMisc';
 
 
-export enum PivotTransformRule {
+export enum PivotPoint {
     TopLeft,
     Center,
     TopMiddle,
     BottomMiddle,
+    TopRight,
     Custom
 }
 
@@ -22,7 +23,7 @@ export type StyleItem = {
     wh?: [number, number],
 }
 export type StyleList = {
-    /** Object name */
+    /** name of vbGraphicObject */
     [name: string]: StyleItem
 }
 
@@ -44,8 +45,8 @@ export interface vbGraphicObject extends Container {
      * If set to Custom, should call setCustomPivot \
      * Default Value: `TopLeft`
      */
-    get pivotRule(): PivotTransformRule;
-    set pivotRule(rule: PivotTransformRule);
+    get pivotRule(): PivotPoint;
+    set pivotRule(rule: PivotPoint);
     /**
      * x, y position relative to the width and height of the object itself.
      */
@@ -91,7 +92,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
     return class GraphicObject extends Other implements vbGraphicObject {
         name = '';
         protected _enable = true;
-        protected _pivotRule = PivotTransformRule.TopLeft;
+        protected _pivotRule = PivotPoint.TopLeft;
         // For some reason, this debugBox cannot be a derived class (recursive dependency?)
         protected _debugBox?: PIXI.Graphics;
         
@@ -99,7 +100,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
         set enable(en: boolean) { this._enable = en; }
 
         get pivotRule() { return this._pivotRule; }
-        set pivotRule(rule: PivotTransformRule) {
+        set pivotRule(rule: PivotPoint) {
             this._pivotRule = rule;
             if (this instanceof Sprite) {
                 setSpritePivotRule(this, rule);
@@ -153,7 +154,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
             s.visible = false; return s;
         })();
         protected static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
-            s.visible = true; s.color = vb.Blue; s.alpha = 1; s.width = 2; return s;
+            s.visible = true; s.color = c.Blue; s.alpha = 1; s.width = 2; return s;
         })();
 
         get debugBox() {
@@ -175,7 +176,9 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
                     this.addChild(this._debugBox);
                 }
                 // update debugBox pivotRule
-                setPivotRule(this._debugBox, this.pivotRule, this.width, this.height);
+                if (this instanceof Sprite) {
+                    setPivotRule(this._debugBox, this._pivotRule, width, height);
+                }
                 this._debugBox.renderable = true;
             }
             else {
@@ -187,36 +190,42 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
 }
 
 
-export function setPivotRule(obj: Container, rule: PivotTransformRule, width: number, height: number) {
+export function setPivotRule(obj: Container, rule: PivotPoint, width: number, height: number) {
     switch (rule) {
-        case PivotTransformRule.TopLeft: {
+        case PivotPoint.TopLeft: {
             obj.pivot.set(0); break;
         }
-        case PivotTransformRule.Center: {
+        case PivotPoint.Center: {
             obj.pivot.set(width/2, height/2); break;
         }
-        case PivotTransformRule.TopMiddle: {
+        case PivotPoint.TopMiddle: {
             obj.pivot.set(width/2, 0); break;
         }
-        case PivotTransformRule.BottomMiddle: {
+        case PivotPoint.BottomMiddle: {
             obj.pivot.set(width/2, height); break;
+        }
+        case PivotPoint.TopRight: {
+            obj.pivot.set(width, 0); break;
         }
     }
 }
 
-export function setSpritePivotRule(obj: Sprite, rule: PivotTransformRule) {
+export function setSpritePivotRule(obj: Sprite, rule: PivotPoint) {
     switch (rule) {
-        case PivotTransformRule.TopLeft: {
+        case PivotPoint.TopLeft: {
             obj.anchor.set(0); break;
         }
-        case PivotTransformRule.Center: {
+        case PivotPoint.Center: {
             obj.anchor.set(0.5); break;
         }
-        case PivotTransformRule.TopMiddle: {
+        case PivotPoint.TopMiddle: {
             obj.anchor.set(0.5, 0); break;
         }
-        case PivotTransformRule.BottomMiddle: {
+        case PivotPoint.BottomMiddle: {
             obj.anchor.set(0.5, 1); break;
+        }
+        case PivotPoint.TopRight: {
+            obj.anchor.set(1, 0); break;
         }
     }
 }

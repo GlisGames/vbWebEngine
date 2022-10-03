@@ -1,11 +1,13 @@
 import * as PIXI from 'pixi.js';
-import { load_json, AssetList, load_assets, get_textureMap, get_multipack_sequenceMap, get_styleMap } from './misc/vbLoader'
+import { c } from './vbMisc';
+import { load_json, AssetList, load_assets, get_textureMap, get_multipack_sequenceMap, get_styleMap, get_localeMap, get_SpineMap } from './misc/vbLoader'
 import { StyleList } from './vbGraphicObject';
 import { vbContainer } from './vbContainer';
 import { vbState } from './vbState';
-import { vbText } from './renderable/vbText';
-import { vb } from './vbUtils'
 import { vbTimer, vbTimerManager } from './vbTimer';
+import { LocalizationTable, vbText } from './renderable/vbText';
+import { vbSoundManager, vbSoundManagerInstance } from './misc/vbSound';
+import { SpineData } from './renderable/vbSpineObject';
 
 
 /** Override the main stage type to vbContainer */
@@ -26,6 +28,12 @@ export class vbApplication extends PIXI.Application {
  */
 export var vbgame = {} as _vbGame;
 export function set_vbgame(g: _vbGame) { vbgame = g; }
+type StateMap = { [stateType: number]: vbState };
+type StyleMap = { [name: string]: StyleList };
+type TextureMap = { [name: string]: PIXI.Texture };
+type SequenceMap = { [name: string]: PIXI.Texture[] };
+type SpineMap = { [name: string]: SpineData };
+type LocaleMap = { [code: string]: LocalizationTable };
 /**
  * Has the main PixiJS application,
  * managing all the assets, states, etc...
@@ -47,17 +55,22 @@ export abstract class _vbGame {
      * everytime when the desiredResolution has changed, (style change, etc.) \
      * And also can be added to window event listener.
      */
-    resizeApp = (e?: UIEvent) => {};
+    resizeAppFn = (e?: UIEvent) => {};
 
     currentState = {} as vbState;
-    states: { [stateType: number]: vbState } = {};
+    states: StateMap = {};
 
     currentStyle = {} as StyleList;
     currentStyleName = '';
-    styleMap: { [name: string]: StyleList } = {};
+    styles: StyleMap = {};
     
-    textureMap: { [name: string]: PIXI.Texture } = {};
-    sequenceMap: { [name: string]: PIXI.Texture[] } = {};
+    textures: TextureMap = {};
+    sequences: SequenceMap = {};
+    spines: SpineMap = {};
+    sounds = {} as vbSoundManager;
+
+    currentLocale = {} as LocalizationTable;
+    locales: LocaleMap = {};
 
 
     async initAssets() {
@@ -66,15 +79,43 @@ export abstract class _vbGame {
         let loader = this.app.loader;
         await load_assets(loader, assets);
 
-        this.textureMap = get_textureMap(loader, assets);
-        this.sequenceMap = get_multipack_sequenceMap(loader, assets);
-        this.styleMap = get_styleMap(loader, assets);
+        this.textures = get_textureMap(loader, assets);
+        this.sequences = get_multipack_sequenceMap(loader, assets);
+        this.spines = get_SpineMap(loader, assets);
+        this.styles = get_styleMap(loader, assets);
+        this.sounds = vbSoundManagerInstance;
+        this.locales = get_localeMap(loader, assets);
     };
 
-    addState(state: vbState) {
-        this.states[state.stateType] = state;
-        this.app.stage.addObj(state.container, 1);
+    /**
+     * @param [layer] The layer which state's container will be in. Default 1.
+     */
+    addState(state: vbState, layer = 1) {
+        this.states[state.sType] = state;
+        this.app.stage.addObj(state.stage, layer);
     }
+
+    setState(stateType: number) {
+        this.currentState = this.states[stateType];
+    }
+    setStyle(name: string) {
+        this.currentStyle = this.styles[name];
+    }
+    setLocale(code: string) {
+        this.currentLocale = this.locales[code];
+    }
+    
+    setResolution(width: number, height: number) {
+        this.desiredWidth = width;
+        this.desiredHeight = height;
+        this.desiredRatio = height / width;
+        this.resizeAppFn();
+        if (this._txtFPS !== undefined) {
+            this._txtFPS.x = width - 40;
+        }
+        // set the size of main container as well
+        this.app.stage.setDesiredSize(width, height);
+    };
 
     /**
      * State timers are running only when this is the current state.
@@ -97,26 +138,13 @@ export abstract class _vbGame {
         this.timers.addTimer(timer);
     }
 
-    /**
-     * Recursively apply current style to all objects.
-     */
     applyCurrentStlye() {
         this.app.stage.applyChildrenStyle(this.currentStyle);
     }
 
-    setCurrentLanguage() {
-        this.app.stage.setLocale('');
+    applyCurrentLocale() {
+        this.app.stage.localizeChildren(this.currentLocale.list);
     }
-    
-    setResolution(width: number, height: number) {
-        this.desiredWidth = width;
-        this.desiredHeight = height;
-        this.desiredRatio = height / width;
-        this.resizeApp();
-        if (this._txtFPS !== undefined) {
-            this._txtFPS.x = width - 40;
-        }
-    };
 
     get DeltaMS() {
         return this.app.ticker.elapsedMS;
@@ -148,9 +176,9 @@ class FPSCounter extends vbText {
     protected totalFPS = 0;
 
     constructor() {
-        super('Arial', 20, vb.Green);
+        super({font: 'Arial', size: 20, color: c.Green});
         this.style.dropShadow = true;
-        this.style.dropShadowColor = vb.Black;
+        this.style.dropShadowColor = c.Black;
         this.style.dropShadowDistance = 4;
     }
 

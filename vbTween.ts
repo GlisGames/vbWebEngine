@@ -23,6 +23,20 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
     resume() {
         return super.resume(vbgame.TotalMS);
     }
+
+    /**
+     * @param [fireCallback] Whether to fire the onStart callback again. Default true.
+     */
+    restart(fireCallback = true) {
+        if (!this.isPlaying()) {
+            return this.start();
+        }
+        // hack the private variables
+        let thisany = <any>this;
+        thisany._startTime = vbgame.TotalMS + thisany._delayTime;
+        thisany._onStartCallbackFired = !fireCallback;
+        return this;
+    }
 }
 
 
@@ -36,12 +50,9 @@ export class vbTweenMap extends TWEEN.Group {
      * @param [to] A collection of properties from `obj`.
      * @param [duration] Time in ms.
      */
-    addTween<T extends UnknownProps>(name: string, obj: T, to: UnknownProps, duration: number) {
+    create<T extends UnknownProps>(name: string, obj: T, to: UnknownProps, duration?: number) {
         if (this.twmap === undefined) {
             this.twmap = new Map<string, vbTween<UnknownProps>>();
-        }
-        if (this.twmap.has(name)) {
-            throw Error('Duplicated names.');
         }
         let tw = new vbTween(name, obj, this).to(to, duration);
         this.twmap.set(name, tw);
@@ -50,6 +61,14 @@ export class vbTweenMap extends TWEEN.Group {
 
     getByName(name: string) {
         return this.twmap?.get(name);
+    }
+
+    addTween(tw: vbTween<UnknownProps>) {
+        if (this.twmap === undefined) {
+            this.twmap = new Map<string, vbTween<UnknownProps>>();
+        }
+        this.twmap?.set(tw.name, tw);
+        tw.group(this);
     }
 
     remove(tween: vbTween<UnknownProps>) {

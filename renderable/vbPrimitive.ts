@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
-import { vb } from '@vb/vbUtils';
+import { c } from '@vb/vbMisc';
 
 
 /** The shape data to be passed to vbPrimitive */
@@ -40,6 +40,14 @@ export class vbCircle extends vbShape {
     constructor(radius: number, x = 0, y = 0) {
         super();
         this.shape = new PIXI.Circle(x, y, radius);
+    }
+}
+
+export class vbEllipse extends vbShape {
+    shape: PIXI.Ellipse;
+    constructor(halfWidth: number, halfHeight: number, x = 0, y = 0) {
+        super();
+        this.shape = new PIXI.Ellipse(x, y, halfWidth, halfHeight);
     }
 }
 
@@ -86,7 +94,6 @@ export class vbPrimitive extends vbGraphicObjectBase(PIXI.Graphics) {
      * If you want to reset, has to call clear() first.
      */
     appendDraw(shapeData: vbShape | vbShape[]) {
-        this.clear();
         if (shapeData instanceof vbShape) {
             this.geometry.drawShape(shapeData.shape, shapeData.fillStyle, shapeData.lineStyle, shapeData.matrix);
         }
@@ -98,6 +105,6 @@ export class vbPrimitive extends vbGraphicObjectBase(PIXI.Graphics) {
     }
 
     static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
-        s.visible = true; s.color = vb.Green; s.alpha = 1; s.width = 2; return s;
+        s.visible = true; s.color = c.Green; s.alpha = 1; s.width = 2; return s;
     })();
 }

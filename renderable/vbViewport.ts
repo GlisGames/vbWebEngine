@@ -41,7 +41,7 @@ export class vbViewport extends vbContainer {
     }
 
     moveTween(name: string, toX: number, toY: number, duration: number) {
-        return this.tweens.addTween(name, this.obj, {x: -toX, y: -toY}, duration);
+        return this.tweens.create(name, this.obj, {x: -toX, y: -toY}, duration);
     }
 
     toggleMask() {

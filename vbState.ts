@@ -6,19 +6,19 @@ import { vbTimerManager } from "./vbTimer";
 export class vbState {
     protected firstIn = true;
     protected nextStateType = 0;
-    stateType: number;
-    container: vbContainer;
+    sType: number;
+    stage: vbContainer;
     timers: vbTimerManager;
 
     constructor(stateType: number, name: string) {
-        this.stateType = stateType;
-        this.container = new vbContainer();
-        this.container.name = name;
-        this.container.enable = false;
+        this.sType = stateType;
+        this.stage = new vbContainer();
+        this.stage.name = name;
+        this.stage.enable = false;
         this.timers = new vbTimerManager();
     }
 
-    get name() { return this.container.name; }
+    get name() { return this.stage.name; }
     enter() {}
     exit() {}
     update(deltaFrame: number) {
@@ -26,7 +26,7 @@ export class vbState {
         this.timers.update(vbgame.DeltaMS);
     }
 
-    setNextState(stateType: number) {
+    setNext(stateType: number) {
         this.nextStateType = stateType;
     }
 
@@ -34,16 +34,16 @@ export class vbState {
         if (this.firstIn) {
             this.nextStateType = 0;
             this.firstIn = false;
-            this.container.enable = true;
-            this.container.renderable = true;
+            this.stage.enable = true;
+            this.stage.renderable = true;
             this.enter();
-            this.container.enterState(this.stateType);
+            this.stage.enterState(this.sType);
         }
         this.update(deltaFrame);
         if (this.nextStateType != 0) {
             this.firstIn = true;
-            this.container.enable = false;
-            this.container.renderable = false;
+            this.stage.enable = false;
+            this.stage.renderable = false;
             this.exit();
         }
 

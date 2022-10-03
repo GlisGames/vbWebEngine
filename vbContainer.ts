@@ -1,17 +1,17 @@
 import * as PIXI from 'pixi.js';
 import { Container, ParticleContainer } from 'pixi.js';
-import { PivotTransformRule, vbGraphicObject, vbGraphicObjectBase, StyleList, setPivotRule } from './vbGraphicObject'
+import { PivotPoint, vbGraphicObject, vbGraphicObjectBase, StyleList, setPivotRule, StyleItem } from './vbGraphicObject'
 import { vbgame } from './vbGame';
 import { vbTweenMap } from './vbTween';
-import { vb } from './vbUtils'
-import { getLocaleObject, vbLocaleObject } from './renderable/vbText';
+import { c } from './vbMisc';
+import { getLocalizedObject, LocalizationList } from './renderable/vbText';
 
 
 /**
  * As is discussed before ( @see vbGraphicObject.debugBox ), `width` and `height` can be dynamically changed, \
  * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
-export class vbContainer extends vbGraphicObjectBase(Container) implements vbLocaleObject {
+export class vbContainer extends vbGraphicObjectBase(Container) {
     /** "Send to Back" layer */
     static readonly minLayer = -9999;
     /** "Bring to Front" layer */
@@ -30,7 +30,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLoc
 
     /**
      * If no arguments are specified, use width and height as the desiredSize.
-     * Will update the debug box size as well.
+     * Will redraw the debug box size as well.
      */
     setDesiredSize(width?: number, height?: number) {
         if (width === undefined || height === undefined) {
@@ -52,7 +52,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLoc
     }
 
     get pivotRule() { return this._pivotRule; }
-    set pivotRule(rule: PivotTransformRule) {
+    set pivotRule(rule: PivotPoint) {
         this._pivotRule = rule;
         setPivotRule(this, rule, this.desiredSize.x, this.desiredSize.y);
     }
@@ -118,6 +118,21 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLoc
         }
     }
 
+    applyStyle(item?: StyleItem) {
+        if (item === undefined) return false;
+        this.x = item.xy[0];
+        this.y = item.xy[1];
+        if (item.s !== undefined) {
+            this.scale.set(item.s);
+        }
+        if (item.wh !== undefined) {
+            this.desiredSize.x = item.wh[0];
+            this.desiredSize.y = item.wh[1];
+            this.setDesiredSize();
+        }
+        return true;
+    }
+
     /**
      * Recursively apply style to all the children.
      */
@@ -135,19 +150,24 @@ export class vbContainer extends vbGraphicObjectBase(Container) implements vbLoc
     /**
      * Recursively set language to all language objects.
      */
-    setLocale(lang: string) {
+    localizeChildren(dictionary: LocalizationList) {
         for (let obj of this.children) {
-            let vbObj = <vbGraphicObject>obj;
-            let locObj = getLocaleObject(vbObj);
-            locObj?.setLocale(lang);
+            if (obj instanceof vbContainer) {
+                let container = <vbContainer>obj;
+                container.localizeChildren(dictionary);
+            }
+            else {
+                let locObj = getLocalizedObject(<vbGraphicObject>obj);
+                locObj?.localize(dictionary[locObj.name]);
+            }
         }
     }
 
     static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
-        s.visible = true; s.color = vb.White; s.alpha = 0.08; return s;
+        s.visible = true; s.color = c.White; s.alpha = 0.08; return s;
     })();
     static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
-        s.visible = true; s.color = vb.Red; s.alpha = 1; s.width = 2; return s;
+        s.visible = true; s.color = c.Red; s.alpha = 1; s.width = 2; return s;
     })();
     /**
      * Show a debug rectangle with desiredSize

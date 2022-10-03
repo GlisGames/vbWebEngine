@@ -21,23 +21,31 @@ export interface vbInteractiveObject extends vbGraphicObject {
     /**
      * @param [fn] Set pointerdown event.
      * If it's a boolean and the function has already been given, the event will be toggled on/off.
+     * @param [on] If `fn` is a function, `on` determines whether to turn on the event.
+     * Sometimes you just want to initialize with a function but turn it on later.
      */
-    setPointerdown(fn: ((e: PIXI.InteractionEvent) => void) | boolean): this;
+    setPointerdown(fn: ((e: PIXI.InteractionEvent) => void) | boolean, on: boolean): this;
     /**
      * @param [fn] Set pointerup event.
      * If it's a boolean and the function has already been given, the event will be toggled on/off.
+     * @param [on] If `fn` is a function, `on` determines whether to turn on the event.
+     * Sometimes you just want to initialize with a function but turn it on later.
      */
-    setPointerup(fn: ((e: PIXI.InteractionEvent) => void) | boolean): this;
+    setPointerup(fn: ((e: PIXI.InteractionEvent) => void) | boolean, on: boolean): this;
     /**
      * @param [fn] Set pointerover event.
      * If it's a boolean and the function has already been given, the event will be toggled on/off.
+     * @param [on] If `fn` is a function, `on` determines whether to turn on the event.
+     * Sometimes you just want to initialize with a function but turn it on later.
      */
-    setPointerover(fn: ((e: PIXI.InteractionEvent) => void) | boolean): this;
+    setPointerover(fn: ((e: PIXI.InteractionEvent) => void) | boolean, on: boolean): this;
     /**
      * @param [fn] Set pointerout event.
      * If it's a boolean and the function has already been given, the event will be toggled on/off.
+     * @param [on] If `fn` is a function, `on` determines whether to turn on the event.
+     * Sometimes you just want to initialize with a function but turn it on later.
      */
-    setPointerout(fn: ((e: PIXI.InteractionEvent) => void) | boolean): this;
+    setPointerout(fn: ((e: PIXI.InteractionEvent) => void) | boolean, on: boolean): this;
 }
 /**
  * Mixin to make other classes as InteractiveObject.
@@ -73,7 +81,7 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
             return this;
         }
 
-        setPointerdown(fn: ((e: PIXI.InteractionEvent) => void) | boolean) {
+        setPointerdown(fn: ((e: PIXI.InteractionEvent) => void) | boolean, on = true) {
             if (fn === true) {
                 if (this._pointerdown_fn !== undefined)
                     this.on('pointerdown', this._pointerdown_fn);
@@ -81,13 +89,13 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
             else if (fn === false)
                 this.off('pointerdown');
             else {
-                this.on('pointerdown', fn);
                 this._pointerdown_fn = fn;
+                if (on) this.on('pointerdown', fn);
             }
             return this;
         }
 
-        setPointerup(fn: ((e: PIXI.InteractionEvent) => void) | boolean) {
+        setPointerup(fn: ((e: PIXI.InteractionEvent) => void) | boolean, on = true) {
             if (fn === true) {
                 if (this._pointerup_fn !== undefined)
                     this.on('pointerup', this._pointerup_fn);
@@ -95,13 +103,13 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
             else if (fn === false)
                 this.off('pointerup');
             else {
-                this.on('pointerup', fn);
                 this._pointerup_fn = fn;
+                if (on) this.on('pointerup', fn);
             }
             return this;
         }
 
-        setPointerover(fn: ((e: PIXI.InteractionEvent) => void) | boolean) {
+        setPointerover(fn: ((e: PIXI.InteractionEvent) => void) | boolean, on = true) {
             if (fn === true) {
                 if (this._pointerover_fn !== undefined)
                     this.on('pointerover', this._pointerover_fn);
@@ -109,13 +117,13 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
             else if (fn === false)
                 this.off('pointerover');
             else {
-                this.on('pointerover', fn);
                 this._pointerover_fn = fn;
+                if (on) this.on('pointerover', fn);
             }
             return this;
         }
 
-        setPointerout(fn: ((e: PIXI.InteractionEvent) => void) | boolean) {
+        setPointerout(fn: ((e: PIXI.InteractionEvent) => void) | boolean, on = true) {
             if (fn === true) {
                 if (this._pointerout_fn !== undefined)
                     this.on('pointerout', this._pointerout_fn);
@@ -123,8 +131,8 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
             else if (fn === false)
                 this.off('pointerout');
             else {
-                this.on('pointerout', fn);
                 this._pointerout_fn = fn;
+                if (on) this.on('pointerout', fn);
             }
             return this;
         }

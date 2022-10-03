@@ -1,12 +1,24 @@
-import { StyleList } from '@vb/vbGraphicObject';
 import * as PIXI from 'pixi.js';
+import { WebfontLoaderPlugin } from 'pixi-webfont-loader';
+import { SpineData, SpineLoaderPlugin } from '@vb/renderable/vbSpineObject';
+import { StyleList, LocalizationTable } from '@vb/vbMisc';
 
 
 export type AssetList = {
     img: string[],
-    img_json: string[],
-    anim_json: string[],
-    style: string[]
+    img_atlas: string[],
+    anim_atlas: string[],
+    spine_json: string[],
+    style: string[],
+    sound: string[],
+    font: [string, string][],
+    lang: {
+        [code: string]: {
+            name: string,
+            defaultFont: string | string[],
+            list: string
+        }
+    }
 }
 
 
@@ -30,32 +42,54 @@ export function load_jsons(filenames: string[]) {
 }
 
 
+var _custom_add_assets_fn = (loader: PIXI.Loader, assets: any) => {};
+/**
+ * Here you can write a custom function to add additional assets that loader should load, \
+ * probably for project specific use.
+ */
+export function customLoaderAddAssets(fn: (loader: PIXI.Loader, assets: any) => void) {
+    _custom_add_assets_fn = fn;
+}
+
 /** Load all the assets we need using PIXI.Loader */
 export function load_assets(loader: PIXI.Loader, assets: AssetList) {
     // temporarily hide annoying texture cache warning
     // https://www.html5gamedevs.com/topic/42438-warging-texture-added-to-the-cache-with-an-id-0-that-already-had-an-entry-when-using-spritesheetparse/
     let console_warn = console.warn;
     console.warn = () => {};
-    
-    return new Promise<void>((resolve) => {
-        for (let filename of assets.img) {
-            loader.add(filename);
-        }
-        for (let filename of assets.img_json) {
-            loader.add(filename);
-        }
-        for (let filename of assets.anim_json) {
-            loader.add(filename);
-        }
-        for (let filename of assets.style) {
-            loader.add(filename);
-        }
 
+    loader.add(assets.img);
+    loader.add(assets.img_atlas);
+    loader.add(assets.anim_atlas);
+    loader.add(assets.spine_json);
+    loader.add(assets.style);
+    for (let filename of assets.sound) {
+        let filename_stripped = filename.split('/')[1];
+        loader.add(filename_stripped, filename);
+    }
+    for (let [fontFamily, filename] of assets.font) {
+        // https://developer.mozilla.org/en-US/docs/Web/API/FontFaceSet
+        // check if this font has been installed
+        if (document.fonts.check('16px ' + fontFamily)) continue;
+        loader.add(fontFamily, filename);
+    }
+    for (let [code, item] of Object.entries(assets.lang)) {
+        loader.add(item.list);
+    }
+    _custom_add_assets_fn(loader, assets);
+
+    // Output the percentage for every resource loaded.
+    loader.onLoad.add((loader: PIXI.Loader, resource: PIXI.LoaderResource) => {
+        let progressPercent = loader.progress.toFixed(2).padStart(6, ' ') + '%';
+        console.debug('[LOADED]', progressPercent, resource.url);
+    });
+
+    return new Promise<void>((resolve) => {
         loader.load(() => {
             // recover
             console.warn = console_warn;
             resolve();
-        });
+        })
     });
 }
 
@@ -71,7 +105,7 @@ export function get_textureMap(loader: PIXI.Loader, assets: AssetList) {
         }
     }
     // get textures from texture atlas
-    for (let filename of assets.img_json) {
+    for (let filename of assets.img_atlas) {
         let sheet = loader.resources[filename].spritesheet;
         if (sheet == undefined) continue;
         // IDK why, but the type of sheet.data is incorrect,
@@ -97,7 +131,7 @@ export function get_multipack_sequenceMap(loader: PIXI.Loader, assets: AssetList
      * keep the file name so they can be sorted
      */
     let sequenceMap_tmp: { [key: string]: [string, PIXI.Texture][] } = {};
-    for (let filename of assets.anim_json) {
+    for (let filename of assets.anim_atlas) {
         let sheet = loader.resources[filename].spritesheet;
         if (sheet == undefined) continue;
         let frames = <any[]><unknown>sheet.data.frames;
@@ -127,8 +161,22 @@ export function get_multipack_sequenceMap(loader: PIXI.Loader, assets: AssetList
 };
 
 
+export function get_SpineMap(loader: PIXI.Loader, assets: AssetList) {
+    let spineMap: { [name: string]: SpineData } = {};
+    for (let filename of assets.spine_json) {
+        // use the name of the subdirectory as spine's name
+        let spinename = filename.split('/')[1];
+        let data = loader.resources[filename].spineData;
+        if (data !== undefined) {
+            spineMap[spinename] = data;
+        }
+    }
+    return spineMap;
+}
+
+
 export function get_styleMap(loader: PIXI.Loader, assets: AssetList) {
-    let styleMap: { [name: string]: StyleList } = {}
+    let styleMap: { [name: string]: StyleList } = {};
     for (let filename of assets.style) {
         // remove suffix
         let filename_stripped = filename.split('/')[1];
@@ -137,3 +185,24 @@ export function get_styleMap(loader: PIXI.Loader, assets: AssetList) {
     }
     return styleMap;
 }
+
+
+export function get_localeMap(loader: PIXI.Loader, assets: AssetList) {
+    let localeMap: { [code: string]: LocalizationTable } = {};
+    // create localization table
+    for (let [code, item] of Object.entries(assets.lang)) {
+        localeMap[code] = {
+            code: code,
+            name: item.name,
+            defaultFont: item.defaultFont,
+            list: {}
+        };
+        localeMap[code].list = loader.resources[item.list].data;
+    }
+    return localeMap;
+}
+
+
+// THIS STATEMENT SHOULD NOT BE INSIDE AN ASYNC FUNCTION!!! (IDK WHY)
+PIXI.extensions.add({type: 'loader', ref: WebfontLoaderPlugin, name: 'webfont'});
+PIXI.extensions.add({type: 'loader', ref: SpineLoaderPlugin, name: 'spine'});

@@ -2,10 +2,10 @@ import * as PIXI from 'pixi.js';
 import { Sprite, AnimatedSprite } from 'pixi.js'
 import { vbGraphicObjectBase, StyleItem } from '@vb/vbGraphicObject';
 import { vbgame } from '@vb/vbGame';
-import { vb } from '@vb/vbUtils';
+import { c } from '@vb/vbMisc';
 
 
-interface ImageStyleItem extends StyleItem {
+export interface ImageStyleItem extends StyleItem {
     /** texture name */
     tex?: string;
 }
@@ -13,21 +13,24 @@ export class vbImage extends vbGraphicObjectBase(Sprite) {
     applyStyle(item: ImageStyleItem) {
         if (!super.applyStyle(item)) return false;
         if (item.tex !== undefined) {
-            this.texture = vbgame.textureMap[item.tex];
+            this.texture = vbgame.textures[item.tex];
         }
         return true;
     }
 
     static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
-        s.visible = true; s.color = vb.Yellow; s.alpha = 1; s.width = 2; return s;
+        s.visible = true; s.color = c.Yellow; s.alpha = 1; s.width = 2; return s;
     })();
 }
 
 
 export class vbSequence extends vbGraphicObjectBase(AnimatedSprite) {
-    /** @param [textures] An array of PIXI.Texture or frame objects that make up the animation. */
-    constructor(textures: PIXI.Texture[]) {
+    /**
+     * @param [textures] An array of PIXI.Texture or frame objects that make up the animation.
+     */
+    constructor(textures: PIXI.Texture[], FPS?: number) {
         super(textures, false);
+        if (FPS !== undefined) this.FPS = FPS;
     }
 
     get FPS() {
@@ -43,6 +46,6 @@ export class vbSequence extends vbGraphicObjectBase(AnimatedSprite) {
     }
 
     static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
-        s.visible = true; s.color = vb.Orange; s.alpha = 1; s.width = 2; return s;
+        s.visible = true; s.color = c.Orange; s.alpha = 1; s.width = 2; return s;
     })();
 }
