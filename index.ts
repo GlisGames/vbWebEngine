@@ -7,18 +7,19 @@ export * as PIXIF from 'pixi-filters';
 export { Easing, Interpolation } from '@tweenjs/tween.js';
 
 
+export { vbGraphicObjectBase } from './vbGraphicObject';
+export type { vbGraphicObject, TypeCons } from './vbGraphicObject';
+
 export { vbContainer } from './vbContainer';
-export { vbState } from './vbState';
 export { vbTimer } from './vbTimer';
 export { vbTween, vbTweenMap } from './vbTween';
-export { set_vbgame, _vbGame } from './vbGame';
+export { vbGame } from './vbGame';
 
-export {
-    PivotPoint,
-    vbGraphicObject,
-    vbGraphicObjectBase,
-    TypeCons
-} from './vbGraphicObject';
+export { PivotPoint } from './core/vbTransform';
+export { vbState } from './core/vbState';
+export { vbInteractiveObjectBase } from './core/vbInteractive';
+export type { vbInteractiveObject } from './core/vbInteractive';
+export { vbScene, vbSceneTransition } from './core/vbScene';
 
 
 export { vbSpineObject } from './renderable/vbSpineObject';
@@ -27,8 +28,6 @@ export { vbImage, vbSequence } from './renderable/vbImage';
 export { vbPopMessage } from './renderable/vbDemoItems';
 
 export {
-    vbInteractiveObject,
-    vbInteractiveObjectBase,
     vbImageButton,
     vbPrimitiveButton,
     vbButton
@@ -44,16 +43,11 @@ export {
     vbPrimitive
 } from './renderable/vbPrimitive';
 
-export {
-    vbLocalizedObject,
-    getLocalizedObject,
-    vbTextInitOptions,
-    vbText,
-    vbLabel
-} from './renderable/vbText';
+export { vbText, vbLabel } from './renderable/vbText';
+export type { vbTextInitOptions } from './renderable/vbText';
 
 
-export * as vb from './vbMisc';
-export { c, m } from './vbMisc';
+export * as vb from './misc/vbMisc';
+export { c, m } from './misc/vbPreset';
 export { customLoaderAddAssets } from './misc/vbLoader';
 export * from './misc/vbSound';

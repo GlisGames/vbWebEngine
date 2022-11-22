@@ -1,21 +1,23 @@
-from importlib.resources import path
 import os, json
 import pathlib
 from fontTools import ttLib
 
-# cd to 'assets' directory
-os.chdir('assets')
-IMG_PATH = 'img'
-ANIMATION_PATH = 'animation'
-SPINE_PATH = 'spine'
-SOUND_PATH = 'sound'
-FONT_PATH = 'font'
-STYLE_PATH = 'style'
-LANG_PATH = 'lang'
+
+# cd to 'assets-dev' directory
+os.chdir(pathlib.Path(__file__).parents[2] / 'assets-dev')
+ASSETS_PATH = pathlib.Path('.')
+
+IMG_PATH = ASSETS_PATH / 'img'
+ANIMATION_PATH = ASSETS_PATH / 'animation'
+SPINE_PATH = ASSETS_PATH / 'spine'
+SOUND_PATH = ASSETS_PATH / 'sound'
+FONT_PATH = ASSETS_PATH / 'font'
+STYLE_PATH = ASSETS_PATH / 'style'
+LANG_PATH = ASSETS_PATH / 'lang'
 
 
 def get_img_list():
-    filelist = list(pathlib.Path(IMG_PATH).iterdir())
+    filelist = list(IMG_PATH.iterdir()) if IMG_PATH.exists() else []
     # for single image files
     imglist = []
     # for texture atlas file
@@ -40,7 +42,7 @@ def get_img_list():
 
 
 def get_animation_list():
-    filelist = list(pathlib.Path(ANIMATION_PATH).iterdir())
+    filelist = list(ANIMATION_PATH.iterdir()) if ANIMATION_PATH.exists() else []
     jsonlist = []
     for filepath in filelist:
         if filepath.suffix == '.json':
@@ -48,34 +50,31 @@ def get_animation_list():
     return jsonlist
 
 def get_style_list():
-    filelist = list(pathlib.Path(STYLE_PATH).iterdir())
+    filelist = list(STYLE_PATH.iterdir()) if STYLE_PATH.exists() else []
     jsonlist = []
     for filepath in filelist:
         jsonlist.append(str(pathlib.PurePosixPath(filepath)))
     return jsonlist
 
 def get_sound_list():
-    filelist = list(pathlib.Path(SOUND_PATH).iterdir())
+    filelist = list(SOUND_PATH.iterdir()) if SOUND_PATH.exists() else []
     soundlist = []
     for filepath in filelist:
         soundlist.append(str(pathlib.PurePosixPath(filepath)))
     return soundlist    
 
 def get_lang_list():
-    # load langconfig
-    langconfig = pathlib.Path('.') / '..' / 'backup' / 'langconfig.json'
-    with open(langconfig, 'r') as f:
-        langconfig = json.load(f)
+    langlist = {}
     # get game.json in subdirectories
-    filelist = list(pathlib.Path(LANG_PATH).rglob('game.json'))
+    filelist = list(LANG_PATH.rglob('game.json')) if LANG_PATH.exists() else []
     for filepath in filelist:
         # the subdirectory name is the locale code name
         code = filepath.parts[1]
-        langconfig[code]['list'] = str(pathlib.PurePosixPath(filepath))
-    return langconfig
+        langlist[code] = str(pathlib.PurePosixPath(filepath))
+    return langlist
 
 def get_font_list():
-    filelist = list(pathlib.Path(FONT_PATH).iterdir())
+    filelist = list(FONT_PATH.iterdir()) if FONT_PATH.exists() else []
     fontlist = []
     for filepath in filelist:
         filename = str(pathlib.PurePosixPath(filepath))
@@ -86,7 +85,7 @@ def get_font_list():
     return fontlist
 
 def get_spine_list():
-    filelist = list(pathlib.Path(SPINE_PATH).iterdir())
+    filelist = list(SPINE_PATH.iterdir()) if SPINE_PATH.exists() else []
     spinelist = []
     for filepath in filelist:
         if filepath.is_file(): continue
@@ -107,5 +106,5 @@ if __name__ == '__main__':
     assets['sound'] = get_sound_list()
     assets['font'] = get_font_list()
     assets['lang'] = get_lang_list()
-    with open('list.json', 'w') as f:
-        json.dump(assets, f, indent=4)
+    with open('assets-list.json', 'w') as f:
+        json.dump(assets, f, indent=2)

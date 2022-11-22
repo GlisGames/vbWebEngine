@@ -1,12 +1,10 @@
-import * as PIXI from 'pixi.js';
 import {
     Spine,
     SpineDebugRenderer,
-    ISkeletonData as SpineData,
     SpineParser as SpineLoaderPlugin
 } from 'pixi-spine';
+import type { ISkeletonData as SpineData } from 'pixi-spine';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
-import { vbgame } from '@vb/vbGame';
 
 
 export { SpineData, SpineLoaderPlugin };
@@ -25,7 +23,7 @@ export class vbSpineObject extends vbGraphicObjectBase(Spine) {
 
     update(deltaFrame: number) {
         // Spine update function accepts seconds as parameter.
-        Spine.prototype.update.call(this, vbgame.DeltaMS * 0.001);
+        Spine.prototype.update.call(this, globalThis.pgame.DeltaMS * 0.001);
     }
 
     get debug(): SpineDebugRenderer {

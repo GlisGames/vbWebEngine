@@ -1,21 +1,21 @@
 import * as PIXI from 'pixi.js';
-import { Sprite, AnimatedSprite } from 'pixi.js'
-import { vbGraphicObjectBase, StyleItem } from '@vb/vbGraphicObject';
-import { vbgame } from '@vb/vbGame';
-import { c } from '@vb/vbMisc';
+import { AnimatedSprite, Sprite } from 'pixi.js'
+import type { StyleItem } from '@vb/core/vbStyle';
+import { c } from '@vb/misc/vbPreset';
+import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
 
 export interface ImageStyleItem extends StyleItem {
     /** texture name */
     tex?: string;
 }
+
 export class vbImage extends vbGraphicObjectBase(Sprite) {
     applyStyle(item: ImageStyleItem) {
-        if (!super.applyStyle(item)) return false;
+        super.applyStyle(item);
         if (item.tex !== undefined) {
-            this.texture = vbgame.textures[item.tex];
+            this.texture = globalThis.pgame.textures[item.tex];
         }
-        return true;
     }
 
     static _debugLineStyle = (() => { let s = new PIXI.LineStyle();

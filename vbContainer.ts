@@ -1,14 +1,16 @@
 import * as PIXI from 'pixi.js';
 import { Container, ParticleContainer } from 'pixi.js';
-import { PivotPoint, vbGraphicObject, vbGraphicObjectBase, StyleList, setPivotRule, StyleItem } from './vbGraphicObject'
-import { vbgame } from './vbGame';
+import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
+import { PivotPoint, setPivotRule } from './core/vbTransform';
+import type { StyleItem, StyleList } from './core/vbStyle';
+import { c } from './misc/vbPreset';
+import type { vbGraphicObject } from './vbGraphicObject';
+import { vbGraphicObjectBase } from './vbGraphicObject';
 import { vbTweenMap } from './vbTween';
-import { c } from './vbMisc';
-import { getLocalizedObject, LocalizationList } from './renderable/vbText';
 
 
 /**
- * As is discussed before ( @see vbGraphicObject.debugBox ), `width` and `height` can be dynamically changed, \
+ * As is discussed at @see vbGraphicObject.debugBox, `width` and `height` can be dynamically changed, \
  * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
 export class vbContainer extends vbGraphicObjectBase(Container) {
@@ -18,6 +20,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
     static readonly maxLayer = 9999;
 
     tweens = new vbTweenMap();
+    /** @note [Can be used for type check] */
     desiredSize = new PIXI.Point();
 
     constructor(desiredWidth?: number, desiredHeight?: number) {
@@ -57,17 +60,39 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
         setPivotRule(this, rule, this.desiredSize.x, this.desiredSize.y);
     }
 
-    addObj(vbObj: vbGraphicObject, layer: number, name = '', useStyle = false) {
-        this.addChild(vbObj);
-        vbObj.layer = layer;
+    addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
+        if (!isNaN(layer)) {
+            vbObj.layer = layer;
+        }
         if (name != '') {
             vbObj.name = name;
         }
-        if (useStyle) {
-            let style = vbgame.currentStyle;
-            vbObj.applyStyle(style[vbObj.name]);
-        }
+        this.addChild(vbObj);
         return this;
+    }
+
+    /**
+     * Try to recursively apply style and localization as well.
+     * Usually it's only used when adding objects to root container.
+     */
+    addObjWithConfig(vbObj: vbGraphicObject) {
+        let style = globalThis.pgame.currStyle.list;
+        let table = globalThis.pgame.currLocale;
+        // try to apply style
+        let item = style[vbObj.name];
+            if (item !== undefined)
+                vbObj.applyStyle(style[vbObj.name]);
+        // try to localize
+        let locObj = <vbLocalizedObject>vbObj;
+        if (locObj.localize !== undefined)
+            locObj.localize(table.dict, table.textures, table.styles[locObj.name]);
+        // try to apply recursively
+        let container = <vbContainer>vbObj;
+        if (container.desiredSize !== undefined) {
+            container.applyChildrenStyle(style);
+            container.localizeChildren(table);
+        }
+        this.addChild(vbObj);
     }
 
     removeObj(vbObj: vbGraphicObject) {
@@ -95,22 +120,9 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
         }
         vbObj.layer = vbContainer.maxLayer;
     }
-    
-    /**
-     * Will be called when it enters any state, recursively call all containers. \
-     * If there's no need for recursive call, the derived class don't have to call super.enterState.
-     * @param [stateType] State type enum as number
-     */
-    enterState(stateType: number) {
-        for (let obj of this.children) {
-            if (!(obj instanceof vbContainer)) continue;
-            let container = <vbContainer>obj;
-            container.enterState(stateType);
-        }
-    }
 
     update(deltaFrame: number) {
-        this.tweens.update(vbgame.TotalMS);
+        this.tweens.update(globalThis.pgame.TotalMS);
         for (let obj of this.children) {
             let vbObj = <vbGraphicObject>obj;
             if (!vbObj.enable) continue;
@@ -118,19 +130,31 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
         }
     }
 
-    applyStyle(item?: StyleItem) {
-        if (item === undefined) return false;
-        this.x = item.xy[0];
-        this.y = item.xy[1];
-        if (item.s !== undefined) {
-            this.scale.set(item.s);
+    /**
+     * Will be called when it enters any state, recursively call all containers. \
+     * If there's no need for recursive call, the derived class don't have to call super.enterState.
+     */
+    enterState(stateName: string) {
+        for (let obj of this.children) {
+            let container = <vbContainer>obj;
+            if (container.desiredSize === undefined) continue;
+            if (!container.enable) continue;
+            
+            container.enterState(stateName);
         }
-        if (item.wh !== undefined) {
-            this.desiredSize.x = item.wh[0];
-            this.desiredSize.y = item.wh[1];
-            this.setDesiredSize();
+    }
+    /**
+     * Will be called when it exits any state, recursively call all containers. \
+     * If there's no need for recursive call, the derived class don't have to call super.exitState.
+     */
+    exitState(stateName: string) {
+        for (let obj of this.children) {
+            let container = <vbContainer>obj;
+            if (container.desiredSize === undefined) continue;
+            if (!container.enable) continue;
+            
+            container.exitState(stateName);
         }
-        return true;
     }
 
     /**
@@ -140,28 +164,51 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
         for (let obj of this.children) {
             let vbObj = <vbGraphicObject>obj;
             if (vbObj.applyStyle === undefined) continue;
-            vbObj.applyStyle(style[vbObj.name]);
-            if (!(vbObj instanceof vbContainer)) continue;
+
+            let item = style[vbObj.name];
+            if (item !== undefined)
+                vbObj.applyStyle(style[vbObj.name]);
+
             let container = <vbContainer>obj;
+            if (container.desiredSize === undefined) continue;
             container.applyChildrenStyle(style);
         }
     }
 
     /**
-     * Recursively set language to all language objects.
+     * Recursively set language to all localized objects.
      */
-    localizeChildren(dictionary: LocalizationList) {
+    localizeChildren(table: LocalizationTable) {
         for (let obj of this.children) {
-            if (obj instanceof vbContainer) {
-                let container = <vbContainer>obj;
-                container.localizeChildren(dictionary);
+            let container = <vbContainer>obj;
+            if (container.desiredSize !== undefined) {
+                container.localizeChildren(table);
             }
             else {
-                let locObj = getLocalizedObject(<vbGraphicObject>obj);
-                locObj?.localize(dictionary[locObj.name]);
+                let locObj = <vbLocalizedObject>obj;
+                if (locObj.localize === undefined) continue;
+
+                let item = table.styles[locObj.name];
+                locObj.localize(table.dict, table.textures, item);
             }
         }
     }
+
+    applyStyle(item: StyleItem) {
+        if (item.xy !== undefined) {
+            this.x = item.xy[0];
+            this.y = item.xy[1];
+        }
+        if (item.s !== undefined) {
+            this.scale.set(item.s);
+        }
+        if (item.wh !== undefined) {
+            this.desiredSize.x = item.wh[0];
+            this.desiredSize.y = item.wh[1];
+            this.setDesiredSize();
+        }
+    }
+
 
     static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
         s.visible = true; s.color = c.White; s.alpha = 0.08; return s;

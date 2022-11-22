@@ -1,5 +1,4 @@
 import * as TWEEN from '@tweenjs/tween.js'
-import { vbgame } from './vbGame'
 
 
 type UnknownProps = Record<string, any>;
@@ -13,15 +12,15 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
     }
 
     start() {
-        return super.start(vbgame.TotalMS);
+        return super.start(globalThis.pgame.TotalMS);
     }
 
     pause() {
-        return super.pause(vbgame.TotalMS);
+        return super.pause(globalThis.pgame.TotalMS);
     }
 
     resume() {
-        return super.resume(vbgame.TotalMS);
+        return super.resume(globalThis.pgame.TotalMS);
     }
 
     /**
@@ -33,7 +32,7 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
         }
         // hack the private variables
         let thisany = <any>this;
-        thisany._startTime = vbgame.TotalMS + thisany._delayTime;
+        thisany._startTime = globalThis.pgame.TotalMS + thisany._delayTime;
         thisany._onStartCallbackFired = !fireCallback;
         return this;
     }

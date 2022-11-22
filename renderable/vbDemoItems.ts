@@ -1,8 +1,10 @@
 /** Here to put some simple objects used for demo purpose, like a message box...  */
-import { vbTween, vbTweenMap } from '@vb/vbTween'
-import { vbShape, vbPrimitive } from './vbPrimitive';
+import { c } from '@vb/misc/vbPreset';
 import { vbButton } from './vbButton';
-import { vbTextInitOptions } from './vbText';
+import { vbPrimitive, vbShape } from './vbPrimitive';
+import { vbText } from './vbText';
+import type { vbTextInitOptions } from './vbText';
+import type { vbTween, vbTweenMap } from '@vb/vbTween';
 
 
 /**
@@ -50,5 +52,30 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
         this.enable = true;
         this.alpha = 1;
         this.fadeTween.delay(displayTime).duration(fadeTime).restart();
+    }
+}
+
+
+/** Show the average over N_FRAME */
+export class FPSCounter extends vbText {
+    static N_FRAME = 10;
+    protected _totalFrames = 0;
+    protected _totalFPS = 0;
+
+    constructor() {
+        super({ font: 'Arial', size: 20, color: c.Green });
+        this.style.dropShadow = true;
+        this.style.dropShadowColor = c.Black;
+        this.style.dropShadowDistance = 4;
+    }
+
+    update(deltaFrame: number) {
+        this._totalFrames++;
+        this._totalFPS += globalThis.pgame.FPS;
+        if (this._totalFrames >= FPSCounter.N_FRAME) {
+            this.text = (this._totalFPS / this._totalFrames).toFixed(0);
+            this._totalFrames = 0;
+            this._totalFPS = 0;
+        }
     }
 }

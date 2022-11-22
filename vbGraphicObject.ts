@@ -1,37 +1,14 @@
 import * as PIXI from 'pixi.js';
-import { Sprite, Container } from 'pixi.js';
+import { PivotPoint, setPivotRule, setSpritePivotRule } from './core/vbTransform';
+import type { StyleItem } from './core/vbStyle';
+import { c } from './misc/vbPreset';
 import type { vbContainer } from './vbContainer';
-import { c } from './vbMisc';
-
-
-export enum PivotPoint {
-    TopLeft,
-    Center,
-    TopMiddle,
-    BottomMiddle,
-    TopRight,
-    Custom
-}
-
-/** A single style element for a vbGraphicObject */
-export type StyleItem = {
-    /** position [x, y] */
-    xy: [number, number],
-    /** scale */
-    s?: number,
-    /** width and height [w, h] */
-    wh?: [number, number],
-}
-export type StyleList = {
-    /** name of vbGraphicObject */
-    [name: string]: StyleItem
-}
 
 
 /**
  * vbEngine base class, inherited from Pixi.Js Container
  */
-export interface vbGraphicObject extends Container {
+export interface vbGraphicObject extends PIXI.Container {
     /**
      * Enables or disable the "update" function \
      * Default Value: `true`
@@ -59,21 +36,27 @@ export interface vbGraphicObject extends Container {
     set layer(z: number);
 
     readonly parentContainer: vbContainer;
+    hasParent(): boolean;
+
     sendToBack(): void;
     bringToFront(): void;
     /**
      * PixiJS uses deltaFrame instead of delatTime in milliseconds as the parameter of update function.
      * But sometimes we need delatTime, or even the total time since game started (for Tween.js),
      * Thus we could call `getDeltaMS`, `getTotalMS` etc, from vbGame. 
+     * 
      * @param [deltaFrame] Number of (desired) frames since last call.
      *        It is calculated based on the target FPS (by default is 60). \
      *        e.g. If the real FPS is 45, deltaFrame is around 1.5
      */
     update(deltaFrame: number): void;
     /**
-     * @return if `item` is undefined, return false
+     * Apply the complete style with a given item.
+     * @note [Can be used for type check]
+     * 
+     * @param [item] make sure `item` is not undefined.
      */
-    applyStyle(item?: StyleItem): boolean;
+    applyStyle(item: StyleItem): void;
     /**
      * Show a debug rectangle with `width` and `height`. \
      * `width` and `height` from PixJS Container are dynamically changed based on the object itself, children and scale. \
@@ -82,13 +65,15 @@ export interface vbGraphicObject extends Container {
     get debugBox(): boolean;
     set debugBox(enable: boolean);
 }
+
+
 /** Define "Class" type */
 export type TypeCons<T> = new (...args: any[]) => T;
 /**
  * Use Mixins to extend the class, similar to multiple inheritance in other languages.
  * https://www.typescriptlang.org/docs/handbook/mixins.html
  */
-export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: TOther) {
+export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Other: TOther) {
     return class GraphicObject extends Other implements vbGraphicObject {
         name = '';
         protected _enable = true;
@@ -102,7 +87,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
         get pivotRule() { return this._pivotRule; }
         set pivotRule(rule: PivotPoint) {
             this._pivotRule = rule;
-            if (this instanceof Sprite) {
+            if (this instanceof PIXI.Sprite) {
                 setSpritePivotRule(this, rule);
                 // Since the sprite pivot rule only set the anchor
                 // we have to set pivot rule for debugBox as well or it won't be changed
@@ -127,6 +112,10 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
         get parentContainer() {
             return <vbContainer><any>this.parent;
         }
+        hasParent() {
+            return this.parent !== null;
+        }
+
         sendToBack() {
             this.parentContainer.sendObjToBack(this);
         }
@@ -135,10 +124,11 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
         }
 
         update(deltaFrame: number) {}
-        applyStyle(item?: StyleItem) {
-            if (item === undefined) return false;
-            this.x = item.xy[0];
-            this.y = item.xy[1];
+        applyStyle(item: StyleItem) {
+            if (item.xy !== undefined) {
+                this.x = item.xy[0];
+                this.y = item.xy[1];
+            }
             if (item.s !== undefined) {
                 this.scale.set(item.s);
             }
@@ -146,8 +136,8 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
                 this.width = item.wh[0];
                 this.height = item.wh[1];
             }
-            return true;
         }
+
 
         // Different classes can have different debugBox style.
         protected static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
@@ -171,12 +161,13 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
                     let fillStyle = (<any>this.constructor)._debugFillStyle;
                     let lineStyle = (<any>this.constructor)._debugLineStyle;
                     this._debugBox = new PIXI.Graphics();
+                    this._debugBox.name = 'debugBox';
                     this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);
                     this._debugBox.zIndex = 9998;
                     this.addChild(this._debugBox);
                 }
                 // update debugBox pivotRule
-                if (this instanceof Sprite) {
+                if (this instanceof PIXI.Sprite) {
                     setPivotRule(this._debugBox, this._pivotRule, width, height);
                 }
                 this._debugBox.renderable = true;
@@ -185,47 +176,6 @@ export function vbGraphicObjectBase<TOther extends TypeCons<Container>>(Other: T
                 if (this._debugBox === undefined) return;
                 this._debugBox.renderable = false;
             }
-        }
-    }
-}
-
-
-export function setPivotRule(obj: Container, rule: PivotPoint, width: number, height: number) {
-    switch (rule) {
-        case PivotPoint.TopLeft: {
-            obj.pivot.set(0); break;
-        }
-        case PivotPoint.Center: {
-            obj.pivot.set(width/2, height/2); break;
-        }
-        case PivotPoint.TopMiddle: {
-            obj.pivot.set(width/2, 0); break;
-        }
-        case PivotPoint.BottomMiddle: {
-            obj.pivot.set(width/2, height); break;
-        }
-        case PivotPoint.TopRight: {
-            obj.pivot.set(width, 0); break;
-        }
-    }
-}
-
-export function setSpritePivotRule(obj: Sprite, rule: PivotPoint) {
-    switch (rule) {
-        case PivotPoint.TopLeft: {
-            obj.anchor.set(0); break;
-        }
-        case PivotPoint.Center: {
-            obj.anchor.set(0.5); break;
-        }
-        case PivotPoint.TopMiddle: {
-            obj.anchor.set(0.5, 0); break;
-        }
-        case PivotPoint.BottomMiddle: {
-            obj.anchor.set(0.5, 1); break;
-        }
-        case PivotPoint.TopRight: {
-            obj.anchor.set(1, 0); break;
         }
     }
 }

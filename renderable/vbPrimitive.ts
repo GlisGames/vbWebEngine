@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
+import { c } from '@vb/misc/vbPreset';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
-import { c } from '@vb/vbMisc';
 
 
 /** The shape data to be passed to vbPrimitive */

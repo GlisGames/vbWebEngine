@@ -101,7 +101,7 @@ export class vbTimer extends PIXI.utils.EventEmitter {
             this._timerManager = value;
         }
     }
-     /**
+    /**
      * Start timer from it's current time. \
      * If it's a tmp timer, add it to its timerManager. \
      * A `start` event will be emitted.

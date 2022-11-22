@@ -1,7 +1,6 @@
-import * as PIXI from 'pixi.js';
-import { vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbContainer } from '@vb/vbContainer';
-import { vbRectangle, vbPrimitive } from './vbPrimitive';
+import type { vbGraphicObject } from '@vb/vbGraphicObject';
+import { vbPrimitive, vbRectangle } from './vbPrimitive';
 
 
 /**

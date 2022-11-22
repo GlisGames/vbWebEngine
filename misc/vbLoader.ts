@@ -1,7 +1,9 @@
 import * as PIXI from 'pixi.js';
+import type { LocalizationTable } from '@vb/core/vbLocalization';
+import type { SpineData } from '@vb/renderable/vbSpineObject';
+import { SpineLoaderPlugin } from '@vb/renderable/vbSpineObject';
+import type { StyleTable } from '@vb/core/vbStyle';
 import { WebfontLoaderPlugin } from 'pixi-webfont-loader';
-import { SpineData, SpineLoaderPlugin } from '@vb/renderable/vbSpineObject';
-import { StyleList, LocalizationTable } from '@vb/vbMisc';
 
 
 export type AssetList = {
@@ -13,11 +15,7 @@ export type AssetList = {
     sound: string[],
     font: [string, string][],
     lang: {
-        [code: string]: {
-            name: string,
-            defaultFont: string | string[],
-            list: string
-        }
+        [code: string]: string
     }
 }
 
@@ -73,8 +71,8 @@ export function load_assets(loader: PIXI.Loader, assets: AssetList) {
         if (document.fonts.check('16px ' + fontFamily)) continue;
         loader.add(fontFamily, filename);
     }
-    for (let [code, item] of Object.entries(assets.lang)) {
-        loader.add(item.list);
+    for (let [code, filename] of Object.entries(assets.lang)) {
+        loader.add(filename);
     }
     _custom_add_assets_fn(loader, assets);
 
@@ -119,7 +117,7 @@ export function get_textureMap(loader: PIXI.Loader, assets: AssetList) {
         }
     }
     return textureMap;
-};
+}
 
 /**
  * Pixi js doesn't support multi-pack spritesheet at the moement, so we have to manually rearrange
@@ -158,7 +156,7 @@ export function get_multipack_sequenceMap(loader: PIXI.Loader, assets: AssetList
         sequenceMap[key] = value.map((value) => { return value[1]; });
     }
     return sequenceMap;
-};
+}
 
 
 export function get_SpineMap(loader: PIXI.Loader, assets: AssetList) {
@@ -176,12 +174,15 @@ export function get_SpineMap(loader: PIXI.Loader, assets: AssetList) {
 
 
 export function get_styleMap(loader: PIXI.Loader, assets: AssetList) {
-    let styleMap: { [name: string]: StyleList } = {};
+    let styleMap: { [name: string]: StyleTable } = {};
     for (let filename of assets.style) {
         // remove suffix
         let filename_stripped = filename.split('/')[1];
         filename_stripped = filename_stripped.split('.')[0];
-        styleMap[filename_stripped] = loader.resources[filename].data;
+        styleMap[filename_stripped] = {
+            name: filename_stripped,
+            list: loader.resources[filename].data
+        };
     }
     return styleMap;
 }
@@ -190,14 +191,12 @@ export function get_styleMap(loader: PIXI.Loader, assets: AssetList) {
 export function get_localeMap(loader: PIXI.Loader, assets: AssetList) {
     let localeMap: { [code: string]: LocalizationTable } = {};
     // create localization table
-    for (let [code, item] of Object.entries(assets.lang)) {
+    for (let [code, filename] of Object.entries(assets.lang)) {
+        let table = <Omit<LocalizationTable, "code">>loader.resources[filename].data
         localeMap[code] = {
             code: code,
-            name: item.name,
-            defaultFont: item.defaultFont,
-            list: {}
+            ...table
         };
-        localeMap[code].list = loader.resources[item.list].data;
     }
     return localeMap;
 }

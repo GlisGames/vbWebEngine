@@ -1,35 +1,19 @@
 import * as PIXI from 'pixi.js';
-import { c } from './vbMisc';
-import { load_json, AssetList, load_assets, get_textureMap, get_multipack_sequenceMap, get_styleMap, get_localeMap, get_SpineMap } from './misc/vbLoader'
-import { StyleList } from './vbGraphicObject';
+import type { AssetList } from './misc/vbLoader';
+import { FPSCounter } from './renderable/vbDemoItems';
+import type { LocalizationTable } from './core/vbLocalization';
+import type { STYPE } from '@g/states/StateTypes';
+import type { SpineData } from './renderable/vbSpineObject';
+import type { StyleTable } from './core/vbStyle';
+import { get_SpineMap, get_localeMap, get_multipack_sequenceMap, get_styleMap, get_textureMap, load_assets, load_json } from './misc/vbLoader'
 import { vbContainer } from './vbContainer';
-import { vbState } from './vbState';
-import { vbTimer, vbTimerManager } from './vbTimer';
-import { LocalizationTable, vbText } from './renderable/vbText';
 import { vbSoundManager, vbSoundManagerInstance } from './misc/vbSound';
-import { SpineData } from './renderable/vbSpineObject';
+import type { vbState } from './core/vbState';
+import { vbTimer, vbTimerManager } from './vbTimer';
 
 
-/** Override the main stage type to vbContainer */
-export class vbApplication extends PIXI.Application {
-    stage = (() => {
-        let stage = new vbContainer();
-        stage.name = 'MainStage';
-        // set the whole screen interactive so it can be clicked
-        stage.interactive = true;
-        return stage;
-    })();
-}
-
-
-/**
- * A global reference pointer that should only be used in Engine code.
- * When the actual game initializes its game object, it should set this pointer.
- */
-export var vbgame = {} as _vbGame;
-export function set_vbgame(g: _vbGame) { vbgame = g; }
-type StateMap = { [stateType: number]: vbState };
-type StyleMap = { [name: string]: StyleList };
+type StateMap = { [stateName: string]: vbState };
+type StyleMap = { [name: string]: StyleTable };
 type TextureMap = { [name: string]: PIXI.Texture };
 type SequenceMap = { [name: string]: PIXI.Texture[] };
 type SpineMap = { [name: string]: SpineData };
@@ -38,45 +22,47 @@ type LocaleMap = { [code: string]: LocalizationTable };
  * Has the main PixiJS application,
  * managing all the assets, states, etc...
  */
-export abstract class _vbGame {
-    /** main stage: app.stage */
-    app = new vbApplication({
-        sharedLoader: true,
-        sharedTicker: true,
-        antialias: true
-    });
+export abstract class vbGame extends PIXI.Application {
+    stage = (() => {
+        let stage = new vbContainer();
+        stage.name = 'MainStage';
+        // set the whole screen interactive so it can be clicked
+        stage.interactive = true;
+        return stage;
+    })();
 
     timers = new vbTimerManager();
     desiredWidth = 0;
     desiredHeight = 0;
+    /** height / width */
     desiredRatio = 0;
     /**
      * The resize callback that should be called 
      * everytime when the desiredResolution has changed, (style change, etc.) \
      * And also can be added to window event listener.
      */
-    resizeAppFn = (e?: UIEvent) => {};
+    resizeAppFn = (contentWidth: number, contentHeight: number) => { };
 
-    currentState = {} as vbState;
+    /** current state */
+    currState = {} as vbState;
     states: StateMap = {};
-
-    currentStyle = {} as StyleList;
-    currentStyleName = '';
+    /** current style */
+    currStyle = {} as StyleTable;
     styles: StyleMap = {};
-    
+    /** current locale */
+    currLocale = {} as LocalizationTable;
+    locales: LocaleMap = {};
+
     textures: TextureMap = {};
     sequences: SequenceMap = {};
     spines: SpineMap = {};
     sounds = {} as vbSoundManager;
 
-    currentLocale = {} as LocalizationTable;
-    locales: LocaleMap = {};
-
 
     async initAssets() {
         // file list json has all the assets that need to be fetched
-        let assets = <AssetList>(await load_json('list.json'));
-        let loader = this.app.loader;
+        let assets = <AssetList>(await load_json('assets-list.json'));
+        let loader = this.loader;
         await load_assets(loader, assets);
 
         this.textures = get_textureMap(loader, assets);
@@ -85,52 +71,60 @@ export abstract class _vbGame {
         this.styles = get_styleMap(loader, assets);
         this.sounds = vbSoundManagerInstance;
         this.locales = get_localeMap(loader, assets);
-    };
-
-    /**
-     * @param [layer] The layer which state's container will be in. Default 1.
-     */
-    addState(state: vbState, layer = 1) {
-        this.states[state.sType] = state;
-        this.app.stage.addObj(state.stage, layer);
     }
 
-    setState(stateType: number) {
-        this.currentState = this.states[stateType];
+    mainLoop(deltaFrame: number) { }
+
+    startLoop() {
+        this.mainLoop = this.mainLoop.bind(this);
+        if (!DEV || (this.ticker.count < 2)) {
+            // for some reasons, when vite hot reload the vue setup script,
+            // it may cause the ticker weirdly add more and more mainLoop callbacks
+            // without initializing everything from empty.
+            // this check is used for preventing redundant callbacks.
+            this.ticker.add(this.mainLoop);
+        }
+    }
+
+    addState(state: vbState) {
+        this.states[state.name] = state;
+    }
+    setState(stateName: STYPE) {
+        this.currState = this.states[stateName];
     }
     setStyle(name: string) {
-        this.currentStyle = this.styles[name];
+        this.currStyle = this.styles[name];
     }
     setLocale(code: string) {
-        this.currentLocale = this.locales[code];
+        this.currLocale = this.locales[code];
     }
-    
+
     setResolution(width: number, height: number) {
         this.desiredWidth = width;
         this.desiredHeight = height;
         this.desiredRatio = height / width;
-        this.resizeAppFn();
+        this.resizeAppFn(width, height);
         if (this._txtFPS !== undefined) {
             this._txtFPS.x = width - 40;
         }
         // set the size of main container as well
-        this.app.stage.setDesiredSize(width, height);
-    };
+        this.stage.setDesiredSize(width, height);
+    }
 
     /**
      * State timers are running only when this is the current state.
      * 
-     * @param [stateType] If it's not specified, add to the current state.
+     * @param [stateName] If it's not specified, add to the current state.
      */
-    addStateTimer(timer: vbTimer, stateType?: number) {
-        if (stateType !== undefined) {
-            this.states[stateType].timers.addTimer(timer);
+    addStateTimer(timer: vbTimer, stateName?: STYPE) {
+        if (stateName !== undefined) {
+            this.states[stateName].timers.addTimer(timer);
         }
         else {
-            this.currentState.timers.addTimer(timer);
+            this.currState.timers.addTimer(timer);
         }
     }
-
+    
     /**
      * Global timers, running at any time.
      */
@@ -139,15 +133,15 @@ export abstract class _vbGame {
     }
 
     applyCurrentStlye() {
-        this.app.stage.applyChildrenStyle(this.currentStyle);
+        this.stage.applyChildrenStyle(this.currStyle.list);
     }
 
     applyCurrentLocale() {
-        this.app.stage.localizeChildren(this.currentLocale.list);
+        this.stage.localizeChildren(this.currLocale);
     }
 
     get DeltaMS() {
-        return this.app.ticker.elapsedMS;
+        return this.ticker.elapsedMS;
     }
 
     get TotalMS() {
@@ -155,7 +149,7 @@ export abstract class _vbGame {
     }
 
     get FPS() {
-        return this.app.ticker.FPS;
+        return this.ticker.FPS;
     }
 
     protected _txtFPS?: FPSCounter;
@@ -164,31 +158,6 @@ export abstract class _vbGame {
         this._txtFPS = new FPSCounter();
         this._txtFPS.x = this.desiredWidth - 40;
         this._txtFPS.y = 0;
-        this.app.stage.addObj(this._txtFPS, vbContainer.maxLayer + 1);
-    }
-}
-
-
-/** Show the average over N_FRAME */
-class FPSCounter extends vbText {
-    static N_FRAME = 10;
-    protected totalFrames = 0;
-    protected totalFPS = 0;
-
-    constructor() {
-        super({font: 'Arial', size: 20, color: c.Green});
-        this.style.dropShadow = true;
-        this.style.dropShadowColor = c.Black;
-        this.style.dropShadowDistance = 4;
-    }
-
-    update(deltaFrame: number) {
-        this.totalFrames++;
-        this.totalFPS += vbgame.FPS;
-        if (this.totalFrames >= FPSCounter.N_FRAME) {
-            this.text = (this.totalFPS / this.totalFrames).toFixed(0);
-            this.totalFrames = 0;
-            this.totalFPS = 0;
-        }
+        this.stage.addObj(this._txtFPS, vbContainer.maxLayer + 1);
     }
 }
