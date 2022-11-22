@@ -152,8 +152,10 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
 
     constructor(bg: T) {
         super();
+        this.sortableChildren = true;
         this.bg = bg;
-        this.bg.pivotRule = PivotPoint.Center;
+        this.bg.layer = 0;
+        // this.bg.pivotRule = PivotPoint.Center;
         this.addChild(bg);
     }
 
@@ -169,8 +171,9 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
      */
     addDefaultText(options: vbTextInitOptions) {
         this.txt = new vbText(options);
+        this.txt.layer = 1;
         this.txt.pivotRule = PivotPoint.Center;
-        // this.txt.position.set(this.bg.width/2, this.bg.height/2);
+        this.txt.position.set(this.bg.width/2, this.bg.height/2);
         this.addChild(this.txt);
         // sync name
         this.name = this.txt.name;
