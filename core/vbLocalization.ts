@@ -9,7 +9,9 @@ export type TextStyleItem = {
     /** font size */
     size?: number
     /** (maybe) right align for Arabic?  */
-    align?: PIXI.TextStyleAlign
+    align?: PIXI.TextStyleAlign,
+    /** (maybe) break words for CJK language? */
+    break?: boolean
 }
 
 /** Each name of vbLocalizedObject maps a text style item */

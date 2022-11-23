@@ -26,8 +26,11 @@ export type vbTextInitOptions = {
     weight?: PIXI.TextStyleFontWeight,
     /** font style */
     style?: PIXI.TextStyleFontStyle,
-    /** If it's specified, also set `wordWrap` and `breakWords` to true */
-    wordWrapWidth?: number,
+    /** word wrap width (it's not the concept of "bounding box") */
+    width?: number,
+    breakWords?: boolean,
+    /** align only makes sense when there're multiple lines */
+    align?: PIXI.TextStyleAlign,
     /** stroke (outline) color */
     stroke?: number,
     /** stroke (outline) thickness */
@@ -80,21 +83,24 @@ export type vbTextInitOptions = {
             style.fontFamily = item.font;
             style.fontSize = item.size;
             if (item.align !== undefined) style.align = item.align;
+            if (item.break !== undefined) style.breakWords = item.break;
         }
+        
         if (options.font !== undefined) style.fontFamily = options.font;
         if (options.size !== undefined) style.fontSize = options.size;
         if (options.weight !== undefined) style.fontWeight = options.weight;
         if (options.style !== undefined) style.fontStyle = options.style;
+        if (options.breakWords !== undefined) style.breakWords = options.breakWords;
+        if (options.align !== undefined) style.align = options.align;
         if (options.stroke !== undefined) style.stroke = options.stroke;
         if (options.strokeWidth !== undefined) style.strokeThickness = options.strokeWidth;
 
         if (options.color !== undefined) style.fill = options.color;
         else if (style.fill === undefined) style.fill = c.White;
 
-        if (options.wordWrapWidth !== undefined) {
+        if (options.width !== undefined) {
             style.wordWrap = true;
-            style.breakWords = true;
-            style.wordWrapWidth = options.wordWrapWidth;
+            style.wordWrapWidth = options.width;
         }
         return style;
     }
@@ -136,19 +142,21 @@ export type vbTextInitOptions = {
             this.style.fontSize = item.size;
         if (item.align !== undefined) 
             this.style.align = item.align;
+        if (item.break !== undefined)
+            this.style.breakWords = item.break;
     }
 }
 
 
 /**
- * Label is based on an GraphicObject (preferably image or primitive?) with optional text, \
+ * Label is based on an GraphicObject (preferably image or primitive?) with text, \
  * its localization support may change both the graphic object and the text. \
  * NOTE: The names of vbLabel object and its `txt` member variable should be the same
  * in order to properly get the localization.
  */
 export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLocalizedObject {
     bg: T;
-    txt?: vbText;
+    txt = {} as vbText;
 
     constructor(bg: T) {
         super();
@@ -199,15 +207,15 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
     }
 
     setTextKey(key: string) {
-        this.txt?.setKey(key);
+        this.txt.setKey(key);
     }
 
     update(deltaFrame: number) {
         this.bg.update(deltaFrame);
-        this.txt?.update(deltaFrame);
+        this.txt.update(deltaFrame);
     }
 
     localize(dict: LocalizedDictionary, textures: LocalizedTextureMap, item?: TextStyleItem) {
-        this.txt?.localize(dict, textures, item);
+        this.txt.localize(dict, textures, item);
     }
 }
