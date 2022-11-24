@@ -148,6 +148,9 @@ export class vbTimer extends PIXI.utils.EventEmitter {
      */
     chain(next: vbTimer) {
         this._next = next;
+        if (next.timerManager === undefined) {
+            next.timerManager = this.timerManager;
+        }
         return this;
     }
     /**
@@ -182,7 +185,9 @@ export class vbTimer extends PIXI.utils.EventEmitter {
                     return;
                 }
                 this.stop();
-                if (this._next !== undefined) this._next.start();
+                if (this._next !== undefined) {
+                    this._next.start();
+                }
             }
         }
     }
@@ -243,11 +248,9 @@ export class vbTimerManager {
             timer.timerManager = this;
         }
         else {
+            timer.timerManager = this;
             if (timer.enable) {
                 this._timers.push(timer);
-            }
-            else {
-                timer.timerManager = this;
             }
         }
     }

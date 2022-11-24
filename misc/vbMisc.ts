@@ -19,3 +19,4 @@ export type {
     LocalizedTextureMap,
     LocalizationTable
 } from '@vb/core/vbLocalization';
+export type { InteractionFn } from '@vb/core/vbInteractive';

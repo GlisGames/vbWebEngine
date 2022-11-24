@@ -23,6 +23,20 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
         return super.resume(globalThis.pgame.TotalMS);
     }
 
+    getMap() {
+        return <vbTweenMap>((<any>this)._group);
+    }
+
+    update(time: number, autoStart: boolean) {
+        let stillPlaying = super.update(time, autoStart);
+        if (!stillPlaying) {
+            // delete from map
+            (<any>this.getMap()).twmap?.delete(this.name);
+        }
+        // the tween group will do the remaining jobs
+        return stillPlaying;
+    }
+
     /**
      * @param [fireCallback] Whether to fire the onStart callback again. Default true.
      */
@@ -68,6 +82,11 @@ export class vbTweenMap extends TWEEN.Group {
         }
         this.twmap?.set(tw.name, tw);
         tw.group(this);
+    }
+
+    removeAll() {
+        super.removeAll();
+        this.twmap?.clear();
     }
 
     remove(tween: vbTween<UnknownProps>) {

@@ -1,6 +1,8 @@
 import type * as PIXI from 'pixi.js';
 
 
+export type Pos2 = { x: number, y: number };
+
 export enum PivotPoint {
     TopLeft,
     Center,
