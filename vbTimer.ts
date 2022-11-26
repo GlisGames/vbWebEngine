@@ -192,15 +192,19 @@ export class vbTimer extends PIXI.utils.EventEmitter {
         }
     }
 
+    /** Can add multiple callbacks */
     onStart(fn: (elapsedTime: number) => void) {
         this.on('start', fn); return this;
     }
+    /** Can add multiple callbacks */
     onUpdate(fn: (elapsedTime: number, delta: number) => void) {
         this.on('update', fn); return this;
     }
+    /** Can add multiple callbacks */
     onRepeat(fn: (elapsedTime: number, repeatCount: number) => void) {
         this.on('repeat', fn); return this;
     }
+    /** Can add multiple callbacks */
     onEnd(fn: (elapsedTime: number) => void) {
         this.on('end', fn); return this;
     }

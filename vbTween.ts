@@ -89,11 +89,11 @@ export class vbTweenMap extends TWEEN.Group {
         this.twmap?.clear();
     }
 
-    remove(tween: vbTween<UnknownProps>) {
+    remove(tween: vbTween<UnknownProps>, force = false) {
         super.remove(tween);
         // if the tween is paused, don't remove it from the name map,
         // only remove when the tween stops playing.
-        if (!tween.isPlaying()) {
+        if (!tween.isPlaying() || force) {
             this.twmap?.delete(tween.name);
         }
     }
