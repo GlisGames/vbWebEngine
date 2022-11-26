@@ -30,6 +30,7 @@ export { vbPopMessage } from './renderable/vbDemoItems';
 
 export {
     vbImageButton,
+    vbImageLabelButton,
     vbPrimitiveButton,
     vbButton
 } from './renderable/vbButton';
@@ -44,8 +45,9 @@ export {
     vbPrimitive
 } from './renderable/vbPrimitive';
 
-export { vbText, vbLabel } from './renderable/vbText';
+export { vbText } from './renderable/vbText';
 export type { vbTextInitOptions } from './renderable/vbText';
+export { vbLabel, vbImageLabel } from './renderable/vbLabel';
 
 
 export * as vb from './misc/vbMisc';
