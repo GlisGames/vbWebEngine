@@ -6,7 +6,6 @@
 
 export * from './vbUtils';
 
-
 export type { StyleItem, StyleList, StyleTable } from '@vb/core/vbStyle';
 export type { AssetList } from './vbLoader';
 export type { ImageStyleItem } from '@vb/renderable/vbImage';
@@ -20,3 +19,5 @@ export type {
     LocalizationTable
 } from '@vb/core/vbLocalization';
 export type { InteractionFn } from '@vb/core/vbInteractive';
+
+export * from './WebUtils';
