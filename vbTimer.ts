@@ -57,58 +57,63 @@ export class vbTimer extends PIXI.utils.EventEmitter {
       */
     isStarted: boolean;
     /**
-     * Tmp timer will only be added to the timerManager when it's running, and will be removed when it's ended.
+     * Preserved timer will stay in TimerManager to avoid constantly being added or removed.
      */
-    tmp: boolean;
+    preserved: boolean;
     protected _delayTime: number;
     protected _elapsedTime: number;
     protected _repeat: number;
-    protected _timerManager?: vbTimerManager;
+    protected _timerManager: vbTimerManager;
     protected _next?: vbTimer;
 
     /**
      * Creates an instance of Timer. \
-     * Newly created timers will be default to be added to the global timerManager.
-     * Can manually create TimerManager and assign timers.
      *
+     * @param [manager] must specify a TimerManager
      * @param [time] The time is ms before timer end or repedeated.
      * @param [repeat] Number of repeat times. If set to Infinity it will loop forever. (default 0)
      * @param [delay] Delay in ms before timer starts (default 0)
-     * @param [tmp] Tmp timer will only be added to the timerManager when it's running, and will be removed when it's ended.
+     * @param [preserved] Normal timer will only be added to the TimerManager when it's running, and will be removed when it's ended. \
+     *              Preserved timer should be added manually and will stay to avoid constantly being added or removed.
      */
-    constructor(time: number, repeat = 0, delay = 0, tmp = true) {
+    constructor(manager: vbTimerManager, time: number, repeat = 0, delay = 0, preserved = false) {
         super();
         this.time = time;
         this.enable = false;
         this.delay = delay;
         this.repeat = repeat;
-        this.tmp = tmp;
+        this.preserved = preserved;
         this.isEnded = false;
         this.isStarted = false;
         this._delayTime = 0;
         this._elapsedTime = 0;
         this._repeat = 0;
+        this._timerManager = manager;
+        if (this.preserved) {
+            manager.addTimer(this);
+        }
     }
     /**
-     * The timerManager this timer is assigned to.
+     * The TimerManager this timer is assigned to.
      */
     get timerManager() { return this._timerManager; }
-    set timerManager(value: vbTimerManager | undefined) {
-        if (this._timerManager !== value) {
-            if (this._timerManager !== undefined) {
-                this._timerManager.removeTimer(this);
+    set timerManager(manager: vbTimerManager) {
+        if (this._timerManager !== manager) {
+            this._timerManager.removeTimer(this);
+            this._timerManager = manager;
+            if (this.preserved) {
+                manager.addTimer(this);
             }
-            this._timerManager = value;
         }
     }
     /**
      * Start timer from it's current time. \
-     * If it's a tmp timer, add it to its timerManager. \
+     * If it's not a preserved timer, add it to its TimerManager. \
      * A `start` event will be emitted.
      */
     start() {
         this.enable = true;
-        if (this.tmp && this._timerManager !== undefined) {
+        if (!this.preserved) {
             this._timerManager.addTimer(this);
         }
         return this;
@@ -117,14 +122,16 @@ export class vbTimer extends PIXI.utils.EventEmitter {
      * Stop timer. \
      * An `end` event will be emitted.
      */
-    stop() {
+    stop(fireCallback = true) {
         this.isEnded = true;
         this.enable = false;
-        this.emit('end', this._elapsedTime);
+        if (fireCallback)
+            this.emit('end', this._elapsedTime);
         return this;
     }
     /**
      * Rest timer to it's initial status.
+     * (doesn't necessarily stop the timer)
      */
     reset() {
         this._elapsedTime = 0;
@@ -135,10 +142,9 @@ export class vbTimer extends PIXI.utils.EventEmitter {
         return this;
     }
     /**
-     * Remove this timer from its timerManager.
+     * Remove this timer from its TimerManager.
      */
     remove() {
-        if (this._timerManager === undefined) return;
         this._timerManager.removeTimer(this);
         return this;
     }
@@ -148,9 +154,7 @@ export class vbTimer extends PIXI.utils.EventEmitter {
      */
     chain(next: vbTimer) {
         this._next = next;
-        if (next.timerManager === undefined) {
-            next.timerManager = this.timerManager;
-        }
+        next.timerManager = this.timerManager;
         return this;
     }
     /**
@@ -236,30 +240,28 @@ export class vbTimerManager {
         for (const timer of this._timers) {
             if (timer.enable) {
                 timer.update(delta);
-                if (timer.isEnded && timer.tmp) {
+                if (timer.isEnded && !timer.preserved) {
                     this.removeTimer(timer);
                 }
             }
         }
     }
     /**
-     * Add timer to this timerManager. \
-     * If it's a tmp timer, only add when it starts.
+     * Add timer to this TimerManager. \
+     * If it's not a preserved timer, only add when it starts.
      */
     addTimer(timer: vbTimer) {
-        if (!timer.tmp) {
+        if (timer.preserved) {
             this._timers.push(timer);
-            timer.timerManager = this;
         }
         else {
-            timer.timerManager = this;
             if (timer.enable) {
                 this._timers.push(timer);
             }
         }
     }
     /**
-     * Remove timer from this timerManager.
+     * Remove timer from this TimerManager.
      */
     removeTimer(timer: vbTimer) {
         this._timersToDelete.push(timer);

@@ -112,24 +112,16 @@ export abstract class vbGame extends PIXI.Application {
     }
 
     /**
-     * State timers are running only when this is the current state.
-     * 
-     * @param [stateName] If it's not specified, add to the current state.
+     * Creates an instance of Timer that is running at any time.
+     *
+     * @param [time] The time is ms before timer end or repedeated.
+     * @param [repeat] Number of repeat times. If set to Infinity it will loop forever. (default 0)
+     * @param [delay] Delay in ms before timer starts (default 0)
+     * @param [preserved] Normal timer will only be added to the TimerManager when it's running, and will be removed when it's ended. \
+     *              Preserved timer will stay to avoid constantly being added or removed.
      */
-    addStateTimer(timer: vbTimer, stateName?: STYPE) {
-        if (stateName !== undefined) {
-            this.states[stateName].timers.addTimer(timer);
-        }
-        else {
-            this.currState.timers.addTimer(timer);
-        }
-    }
-    
-    /**
-     * Global timers, running at any time.
-     */
-    addGlobalTimer(timer: vbTimer) {
-        this.timers.addTimer(timer);
+    createGlobalTimer(time: number, repeat = 0, delay = 0, preserved = false) {
+        return new vbTimer(this.timers, time, repeat, delay, preserved);
     }
 
     applyCurrentStlye() {
