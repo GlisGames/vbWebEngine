@@ -1,5 +1,4 @@
 import * as PIXI from 'pixi.js';
-import { Container, ParticleContainer } from 'pixi.js';
 import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, setPivotRule } from './core/vbTransform';
 import type { StyleItem, StyleList } from './core/vbStyle';
@@ -13,7 +12,7 @@ import { vbTweenMap } from './vbTween';
  * As is discussed at @see vbGraphicObject.debugBox, `width` and `height` can be dynamically changed, \
  * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
-export class vbContainer extends vbGraphicObjectBase(Container) {
+export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     /** "Send to Back" layer */
     static readonly minLayer = -9999;
     /** "Bring to Front" layer */
@@ -131,6 +130,16 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
     }
 
     /**
+     * Check if an interaction event happens inside this container.
+     * Use `localBounds` to match the point.
+     */
+    containsInteraction(e: PIXI.InteractionEvent) {
+        let p = e.data.getLocalPosition(this);
+        let rect = this.getLocalBounds(undefined, true);
+        return rect.contains(p.x, p.y);
+    }
+
+    /**
      * Will be called when it enters any state, recursively call all containers. \
      * If there's no need for recursive call, the derived class don't have to call super.enterState.
      */
@@ -229,6 +238,6 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
 
 
 /** Further use ??? */
-class vbBatchContainer extends vbGraphicObjectBase(ParticleContainer) {
+class vbBatchContainer extends vbGraphicObjectBase(PIXI.ParticleContainer) {
     
 }

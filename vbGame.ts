@@ -5,8 +5,10 @@ import type { LocalizationTable } from './core/vbLocalization';
 import type { STYPE } from '@g/states/StateTypes';
 import type { SpineData } from './renderable/vbSpineObject';
 import type { StyleTable } from './core/vbStyle';
+import { c } from './misc/vbPreset';
 import { get_SpineMap, get_localeMap, get_multipack_sequenceMap, get_styleMap, get_textureMap, load_assets, load_json } from './misc/vbLoader'
 import { vbContainer } from './vbContainer';
+import { vbPrimitive, vbRectangle } from './renderable/vbPrimitive';
 import { vbSoundManager, vbSoundManagerInstance } from './misc/vbSound';
 import type { vbState } from './core/vbState';
 import { vbTimer, vbTimerManager } from './vbTimer';
@@ -29,6 +31,12 @@ export abstract class vbGame extends PIXI.Application {
         // set the whole screen interactive so it can be clicked
         stage.interactive = true;
         return stage;
+    })();
+    /** an invisible rectangle used for interaction */
+    protected _bgRect = (() => {
+        let rect = new vbRectangle(100, 100).fill(c.White, 0);
+        let bg = new vbPrimitive(rect);
+        return bg;
     })();
 
     timers = new vbTimerManager();
@@ -60,6 +68,7 @@ export abstract class vbGame extends PIXI.Application {
 
 
     async initAssets() {
+        this.stage.addObj(this._bgRect, -9998);
         // file list json has all the assets that need to be fetched
         let assets = <AssetList>(await load_json('assets-list.json'));
         let loader = this.loader;
@@ -103,10 +112,11 @@ export abstract class vbGame extends PIXI.Application {
         this.desiredWidth = width;
         this.desiredHeight = height;
         this.desiredRatio = height / width;
-        this.resizeAppFn(width, height);
         if (this._txtFPS !== undefined) {
             this._txtFPS.x = width - 40;
         }
+        this._bgRect.width = width;
+        this._bgRect.height = height;
         // set the size of main container as well
         this.stage.setDesiredSize(width, height);
     }

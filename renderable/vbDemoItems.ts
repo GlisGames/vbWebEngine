@@ -25,31 +25,32 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
         this.fadeTween = tweens.create('fade', this, {alpha: 0});
         this.addDefaultText(txtOptions);
         // disable at start
-        this.enable = false;
+        this.displayed = false;
         // set callback
         this.fadeTween.onStart((obj: this) => {
             this.onStartFadingFn(obj);
         })
         .onComplete((obj: this) => {
-            this.enable = false;
+            this.displayed = false;
             this.onFadeEndFn(obj);
         });
     }
 
-    get enable() { return this._enable; }
-    set enable(en: boolean) {
-        // set everything
-        this._enable = this.renderable = this.interactive = en;
+    get displayed() { return this.renderable; }
+    set displayed(en: boolean) {
+        this.renderable = this.interactive = en;
     }
 
     /**
-     * Pop up the message
+     * Pop up the message.
+     * (Won't do anything if it's not enabled)
      * 
      * @param [displayTime]
      * @param [fadeTime] 
      */
     pop(displayTime: number, fadeTime: number) {
-        this.enable = true;
+        if (!this.enable) return;
+        this.displayed = true;
         this.alpha = 1;
         this.fadeTween.delay(displayTime).duration(fadeTime).restart();
     }

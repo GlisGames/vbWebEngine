@@ -141,6 +141,9 @@ export class vbTimer extends PIXI.utils.EventEmitter {
         this.isEnded = false;
         return this;
     }
+    restart() {
+        this.reset().start();
+    }
     /**
      * Remove this timer from its TimerManager.
      */

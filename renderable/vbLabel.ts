@@ -4,6 +4,7 @@ import { PivotPoint, setPivotRule } from '@vb/core/vbTransform';
 import type { vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 import { vbImage } from './vbImage';
+import { vbPrimitive, vbShape } from './vbPrimitive';
 import { vbText } from './vbText';
 import type { vbTextInitOptions } from './vbText';
 
@@ -84,5 +85,12 @@ import type { vbTextInitOptions } from './vbText';
 export class vbImageLabel extends vbLabel<vbImage> {
     constructor(texture: PIXI.Texture) {
         super(new vbImage(texture));
+    }
+}
+
+
+export class vbPrimiLabel extends vbLabel<vbPrimitive> {
+    constructor(shapeData?: vbShape | vbShape[] | PIXI.GraphicsGeometry) {
+        super(new vbPrimitive(shapeData));
     }
 }
