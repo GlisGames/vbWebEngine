@@ -20,8 +20,20 @@ export type LocalizedStyleList = {
 }
 
 /** Each key name maps a text string */
-export type LocalizedDictionary = {
+type LocalizedDictionary = {
     [key: string]: string
+}
+
+/** Sometimes it may need a list? */
+type LocalizedDictList = {
+    [key: string]: string[]
+}
+
+/** Sometimes it may even need a map?? */
+type LocalizedDictMap = {
+    [key: string]: {
+        [key: string]: string
+    }
 }
 
 /**
@@ -33,7 +45,7 @@ export type StylesTextureMap = {
 }
 
 /** Each key name maps a (or more) texture name */
-export type LocalizedTextureMap = {
+type LocalizedTextureMap = {
     [key: string]: string | StylesTextureMap
 }
 
@@ -46,6 +58,8 @@ export type LocalizationTable = {
     defaultFont: string | string[],
 
     dict: LocalizedDictionary,
+    dictList: LocalizedDictList,
+    dictMap: LocalizedDictMap,
     textures: LocalizedTextureMap,
     styles: LocalizedStyleList
 }
@@ -55,9 +69,8 @@ export interface vbLocalizedObject extends vbGraphicObject {
      * Apply localization with a given item.
      * @note [Can be used for type check]
      * 
-     * @param [dict] Dictionary from current localization table
-     * @param [textures] Texture map from current localization table
+     * @param [table] current localization table
      * @param [item] Only vbText has this?
      */
-    localize(dict: LocalizedDictionary, textures: LocalizedTextureMap, item?: TextStyleItem): void;
+    localize(table: LocalizationTable, item?: TextStyleItem): void;
 } 

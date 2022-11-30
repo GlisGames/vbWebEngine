@@ -84,7 +84,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         // try to localize
         let locObj = <vbLocalizedObject>vbObj;
         if (locObj.localize !== undefined)
-            locObj.localize(table.dict, table.textures, table.styles[locObj.name]);
+            locObj.localize(table, table.styles[locObj.name]);
         // try to apply recursively
         let container = <vbContainer>vbObj;
         if (container.desiredSize !== undefined) {
@@ -189,17 +189,13 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
      */
     localizeChildren(table: LocalizationTable) {
         for (let obj of this.children) {
-            let container = <vbContainer>obj;
-            if (container.desiredSize !== undefined) {
-                container.localizeChildren(table);
-            }
-            else {
-                let locObj = <vbLocalizedObject>obj;
-                if (locObj.localize === undefined) continue;
+            let locObj = <vbLocalizedObject>obj;
+            if (locObj.localize !== undefined)
+                locObj.localize(table, table.styles[locObj.name]);
 
-                let item = table.styles[locObj.name];
-                locObj.localize(table.dict, table.textures, item);
-            }
+            let container = <vbContainer>obj;
+            if (container.desiredSize === undefined) continue;
+            container.localizeChildren(table);
         }
     }
 

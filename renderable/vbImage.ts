@@ -11,11 +11,24 @@ export interface ImageStyleItem extends StyleItem {
 }
 
 export class vbImage extends vbGraphicObjectBase(Sprite) {
+    /**
+     * @param [texName] Name of texture in texture map.
+     */
+    constructor(texName?: string) {
+        if (texName !== undefined)
+            super(globalThis.pgame.textures[texName]);
+        else
+            super();
+    }
+
+    setTex(texName: string) {
+        this.texture = globalThis.pgame.textures[texName];
+    }
+
     applyStyle(item: ImageStyleItem) {
         super.applyStyle(item);
-        if (item.tex !== undefined) {
-            this.texture = globalThis.pgame.textures[item.tex];
-        }
+        if (item.tex !== undefined)
+            this.setTex(item.tex);
     }
 
     static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
@@ -26,10 +39,10 @@ export class vbImage extends vbGraphicObjectBase(Sprite) {
 
 export class vbSequence extends vbGraphicObjectBase(AnimatedSprite) {
     /**
-     * @param [textures] An array of PIXI.Texture or frame objects that make up the animation.
+     * @param [seqName] Name of sequence in sequence map.
      */
-    constructor(textures: PIXI.Texture[], FPS?: number) {
-        super(textures, false);
+    constructor(seqName: string, FPS?: number) {
+        super(globalThis.pgame.sequences[seqName], false);
         if (FPS !== undefined) this.FPS = FPS;
     }
 

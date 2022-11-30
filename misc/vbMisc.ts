@@ -13,9 +13,7 @@ export type { SpineData } from '@vb/renderable/vbSpineObject';
 export type {
     TextStyleItem,
     LocalizedStyleList,
-    LocalizedDictionary,
     StylesTextureMap,
-    LocalizedTextureMap,
     LocalizationTable
 } from '@vb/core/vbLocalization';
 export type { InteractionFn } from '@vb/core/vbInteractive';

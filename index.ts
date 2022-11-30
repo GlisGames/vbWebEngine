@@ -21,6 +21,7 @@ export { vbState } from './core/vbState';
 export { vbInteractiveObjectBase } from './core/vbInteractive';
 export type { vbInteractiveObject } from './core/vbInteractive';
 export { vbScene, vbSceneTransition } from './core/vbScene';
+export type { vbLocalizedObject } from './core/vbLocalization';
 
 
 export { vbSpineObject } from './renderable/vbSpineObject';

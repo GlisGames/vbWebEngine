@@ -1,6 +1,6 @@
 /** https://pixijs.io/pixi-text-style/# */
 import * as PIXI from 'pixi.js';
-import type { LocalizedDictionary, LocalizedTextureMap, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
+import type { LocalizationTable, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
 import { c } from '@vb/misc/vbPreset';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
@@ -80,18 +80,18 @@ export type vbTextInitOptions = {
         if (item !== undefined) {
             style.fontFamily = item.font;
             style.fontSize = item.size;
-            if (item.align !== undefined) style.align = item.align;
-            if (item.break !== undefined) style.breakWords = item.break;
+            style.align = item.align;
+            style.breakWords = item.break;
         }
         
-        if (options.font !== undefined) style.fontFamily = options.font;
-        if (options.size !== undefined) style.fontSize = options.size;
-        if (options.weight !== undefined) style.fontWeight = options.weight;
-        if (options.style !== undefined) style.fontStyle = options.style;
-        if (options.breakWords !== undefined) style.breakWords = options.breakWords;
-        if (options.align !== undefined) style.align = options.align;
-        if (options.stroke !== undefined) style.stroke = options.stroke;
-        if (options.strokeWidth !== undefined) style.strokeThickness = options.strokeWidth;
+        style.fontFamily = options.font;
+        style.fontSize = options.size;
+        style.fontWeight = options.weight;
+        style.fontStyle = options.style;
+        style.breakWords = options.breakWords;
+        style.align = options.align;
+        style.stroke = options.stroke;
+        style.strokeThickness = options.strokeWidth;
 
         if (options.color !== undefined) style.fill = options.color;
         else if (style.fill === undefined) style.fill = c.White;
@@ -100,6 +100,21 @@ export type vbTextInitOptions = {
             style.wordWrap = true;
             style.wordWrapWidth = options.width;
         }
+        Object.removeUndef(style);
+        return style;
+    }
+
+    static getLocalizedStyle(txt: vbText, item: TextStyleItem) {
+        let style: Partial<PIXI.ITextStyle> = {};
+
+        if (item.font !== undefined)
+            style.fontFamily = item.font;
+        else if (txt._useDefaultFont)
+            style.fontFamily = globalThis.pgame.currLocale.defaultFont;
+        style.fontSize = item.size;
+        style.align = item.align;
+        style.breakWords = item.break;
+        Object.removeUndef(style);
         return style;
     }
 
@@ -125,22 +140,12 @@ export type vbTextInitOptions = {
         }
     }
 
-    localize(dict: LocalizedDictionary, textures: LocalizedTextureMap, item?: TextStyleItem) {
-        let text = dict[this._key];
+    localize(table: LocalizationTable, item?: TextStyleItem) {
+        let text = table.dict[this._key];
         if (text !== undefined)
             this.text = text;
 
         if (item === undefined) return;
-        if (item.font !== undefined)
-            this.style.fontFamily = item.font;
-        else if (this._useDefaultFont)
-            this.style.fontFamily = globalThis.pgame.currLocale.defaultFont;
-
-        if (item.size !== undefined)
-            this.style.fontSize = item.size;
-        if (item.align !== undefined) 
-            this.style.align = item.align;
-        if (item.break !== undefined)
-            this.style.breakWords = item.break;
+        Object.assign(this.style, vbText.getLocalizedStyle(this, item));
     }
 }

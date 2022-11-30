@@ -33,6 +33,13 @@ declare global {
         pad0(len: number): string;
     }
 
+    interface ObjectConstructor {
+        /**
+         * Remove all undefined properties, use at your own risk
+         */
+        removeUndef(obj: any): void;
+    }
+
     interface Set<T> {
         union(): Set<T>;
         intersection(): Set<T>;
@@ -97,6 +104,10 @@ Number.prototype.pad = function(len: number, char: string) {
 }
 Number.prototype.pad0 = function(len: number) {
     return String(this).padStart(len, '0');
+}
+
+Object.removeUndef = function(obj: any) {
+    Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
 }
 
 Math.randInt = function(max: number) {

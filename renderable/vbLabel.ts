@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import type { LocalizedDictionary, LocalizedTextureMap, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
+import type { LocalizationTable, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
 import { PivotPoint, setPivotRule } from '@vb/core/vbTransform';
 import type { vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
@@ -76,15 +76,15 @@ import type { vbTextInitOptions } from './vbText';
         this.txt.update(deltaFrame);
     }
 
-    localize(dict: LocalizedDictionary, textures: LocalizedTextureMap, item?: TextStyleItem) {
-        this.txt.localize(dict, textures, item);
+    localize(table: LocalizationTable, item?: TextStyleItem) {
+        this.txt.localize(table, item);
     }
 }
 
 
 export class vbImageLabel extends vbLabel<vbImage> {
-    constructor(texture: PIXI.Texture) {
-        super(new vbImage(texture));
+    constructor(texName: string) {
+        super(new vbImage(texName));
     }
 }
 
