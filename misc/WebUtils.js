@@ -1,19 +1,19 @@
-declare global {
-    interface Document {
-        webkitFullscreenElement?: Element | null;
-        msFullscreenElement?: Element | null;
-        mozFullScreenElement?: Element | null;
-        webkitExitFullscreen?: () => Promise<void>;
-        msExitFullscreen?: () => Promise<void>;
-        mozCancelFullScreen?: () => Promise<void>;
-    }
+// declare global {
+//     interface Document {
+//         webkitFullscreenElement?: Element | null;
+//         msFullscreenElement?: Element | null;
+//         mozFullScreenElement?: Element | null;
+//         webkitExitFullscreen?: () => Promise<void>;
+//         msExitFullscreen?: () => Promise<void>;
+//         mozCancelFullScreen?: () => Promise<void>;
+//     }
 
-    interface HTMLElement {
-        webkitRequestFullscreen?: (options?: FullscreenOptions) => Promise<void>;
-        msRequestFullscreen?: (options?: FullscreenOptions) => Promise<void>;
-        mozRequestFullScreen?: (options?: FullscreenOptions) => Promise<void>;
-    }
-}
+//     interface HTMLElement {
+//         webkitRequestFullscreen?: (options?: FullscreenOptions) => Promise<void>;
+//         msRequestFullscreen?: (options?: FullscreenOptions) => Promise<void>;
+//         mozRequestFullScreen?: (options?: FullscreenOptions) => Promise<void>;
+//     }
+// }
 
 export function isMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

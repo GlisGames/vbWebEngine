@@ -38,7 +38,7 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
 
     get displayed() { return this.renderable; }
     set displayed(en: boolean) {
-        this.renderable = this.interactive = en;
+        this.renderable = this.interactive = this.interactiveChildren = en;
     }
 
     /**

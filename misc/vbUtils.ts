@@ -1,4 +1,6 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
 /** Any utility functions, extensions etc */
+
 declare global {
     interface Array<T> {
         clear(): void;
@@ -9,6 +11,9 @@ declare global {
          * Remove the matched item once at a time
          */
         removeOnce(item: T): void;
+        union(other: T[]): T[];
+        intersection(other: T[]): T[];
+        difference(other: T[]): T[];
     }
 
     interface ArrayConstructor {
@@ -41,9 +46,9 @@ declare global {
     }
 
     interface Set<T> {
-        union(): Set<T>;
-        intersection(): Set<T>;
-        difference(): Set<T>;
+        union(other: Set<T>): Set<T>;
+        intersection(other: Set<T>): Set<T>;
+        difference(other: Set<T>): Set<T>;
     }
 
     interface Math {
@@ -81,6 +86,15 @@ Array.prototype.removeOnce = function(item: any) {
         this.splice(index, 1);
     }
 }
+Array.prototype.union = function(other: any[]) {
+    return [...new Set([...this, ...other])];
+}
+Array.prototype.intersection = function(other: any[]) {
+    return Array.from(this).filter(x => other.includes(x));
+}
+Array.prototype.difference = function(other: any[]) {
+    return Array.from(this).filter(x => !other.includes(x));
+}
 
 Array.range = function range(start: number, stop?: number, step?: number) {
     if (step === undefined) step = 1;
@@ -108,6 +122,20 @@ Number.prototype.pad0 = function(len: number) {
 
 Object.removeUndef = function(obj: any) {
     Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
+}
+
+Set.prototype.union = function(other: Set<any>) {
+    return new Set([...this, ...other]);
+}
+Set.prototype.intersection = function(other: Set<any>) {
+    return new Set(
+        Array.from(this).filter(x => other.has(x))
+    );
+}
+Set.prototype.difference = function(other: Set<any>) {
+    return new Set(
+        Array.from(this).filter(x => !other.has(x))
+    );
 }
 
 Math.randInt = function(max: number) {
