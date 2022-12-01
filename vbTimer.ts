@@ -215,6 +215,18 @@ export class vbTimer extends PIXI.utils.EventEmitter {
     onEnd(fn: (elapsedTime: number) => void) {
         this.on('end', fn); return this;
     }
+    clearOnStart(fn?: (elapsedTime: number) => void) {
+        this.off('start', fn); return this;
+    }
+    clearOnUpdate(fn?: (elapsedTime: number, delta: number) => void) {
+        this.off('update', fn); return this;
+    }
+    clearOnRepeat(fn?: (elapsedTime: number, repeatCount: number) => void) {
+        this.off('repeat', fn); return this;
+    }
+    clearOnEnd(fn?: (elapsedTime: number) => void) {
+        this.off('end', fn); return this;
+    }
 }
 
 

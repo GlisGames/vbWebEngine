@@ -43,6 +43,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
             this.desiredSize.x = width;
             this.desiredSize.y = height;
         }
+        setPivotRule(this, this._pivotRule, this.desiredSize.x, this.desiredSize.y);
         // If there's a debugBox, redraw with new size
         if (this._debugBox !== undefined) {
             this._debugBox.clear();

@@ -4,11 +4,17 @@ import * as TWEEN from '@tweenjs/tween.js'
 type UnknownProps = Record<string, any>;
 
 export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
+    protected _onCompleteCallbacks: ((object: T) => void)[] = [];
     name: string;
 
     constructor(name: string, obj: T, group: TWEEN.Group) {
         super(obj, group);
         this.name = name;
+        super.onComplete((object: T) => {
+            for (const callback of this._onCompleteCallbacks) {
+                callback(object);
+            }
+        });
     }
 
     start() {
@@ -27,6 +33,19 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
         return <vbTweenMap>((<any>this)._group);
     }
 
+    /**
+     * A frequent usage scenario is that multiple entities want to add each of their on complete callback
+     * to a single tween. So we override the original function to support multiple callbacks.
+     */
+    onComplete(callback: (object: T) => void) {
+        this._onCompleteCallbacks.push(callback);
+        return this;
+    }
+
+    clearOnComplete() {
+        this._onCompleteCallbacks.clear();
+    }
+
     update(time: number, autoStart: boolean) {
         let stillPlaying = super.update(time, autoStart);
         if (!stillPlaying) {
@@ -35,6 +54,11 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
         }
         // the tween group will do the remaining jobs
         return stillPlaying;
+    }
+
+    reset() {
+        let thisany = <any>this;
+        thisany._startTime = globalThis.pgame.TotalMS + thisany._delayTime;
     }
 
     /**
@@ -55,7 +79,7 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
 
 export class vbTweenMap extends TWEEN.Group {
     /** Map the name of tweens */
-    protected twmap: Map<string, vbTween<UnknownProps>> | undefined;
+    protected twmap: Map<string, vbTween<any>> | undefined;
 
     /**
      * @param [name] Cannot be duplicated
@@ -65,7 +89,7 @@ export class vbTweenMap extends TWEEN.Group {
      */
     create<T extends UnknownProps>(name: string, obj: T, to: UnknownProps, duration?: number) {
         if (this.twmap === undefined) {
-            this.twmap = new Map<string, vbTween<UnknownProps>>();
+            this.twmap = new Map<string, vbTween<any>>();
         }
         let tw = new vbTween(name, obj, this).to(to, duration);
         this.twmap.set(name, tw);

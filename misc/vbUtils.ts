@@ -169,25 +169,38 @@ Math.shuffle = function(arr: any[], n?: number) {
 }
 
 
-export function setCurrencyFormat(locale: string) {
-    formatCurrency = formatItalianCurrency;
+export function setNumberFormat(locale: string) {
+    fmtCurrency = fmtItalianCurrency;
+    fmtCurrency0 = fmtItalianCurrency0;
 }
-export var formatCurrency = (value: number) => { return ''; }
+/** With decimals */
+export var fmtCurrency = (value: number) => { return ''; }
+/** Without decimals */
+export var fmtCurrency0 = (value: number) => { return ''; }
+/** With decimals */
+export var fmtNumber = (value: number) => { return ''; }
+/** Without decimals */
+export var fmtNumber0 = (value: number) => { return ''; }
 
 
-function formatItalianCurrency(value: number) {
-    let decimal = value % 100;
+function fmtItalianCurrency0(value: number) {
     value = Math.floor(value / 100);
     if (value < 1000)
-        return `€${value},${decimal.pad0(2)}`;
+        return `€${value}`;
     else {
         let units = value % 1000;
         value = Math.floor(value / 1000);
         if (value < 1000)
-            return `€${value}.${units.pad0(3)},${decimal.pad0(2)}`;
+            return `€${value}.${units.pad0(3)}`;
         else {
             let thousands = value % 1000;
-            return `€${value}.${thousands.pad0(3)}.${units.pad0(3)},${decimal.pad0(2)}`;
+            return `€${value}.${thousands.pad0(3)}.${units.pad0(3)}`;
         }
     }
+}
+
+function fmtItalianCurrency(value: number) {
+    let decimal = value % 100;
+    let s = fmtCurrency0(value);
+    return `${s},${decimal.pad0(2)}`;
 }
