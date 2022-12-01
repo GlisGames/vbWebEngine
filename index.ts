@@ -16,7 +16,6 @@ export { vbTween, vbTweenMap } from './vbTween';
 export { vbGame } from './vbGame';
 
 export { PivotPoint } from './core/vbTransform';
-export type { Pos2 } from './core/vbTransform';
 export { vbState } from './core/vbState';
 export { vbInteractiveObjectBase } from './core/vbInteractive';
 export type { vbInteractiveObject } from './core/vbInteractive';

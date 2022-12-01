@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
-import { PivotPoint, setPivotRule } from './core/vbTransform';
+import { PivotPoint, type Pos2, setPivotRule } from './core/vbTransform';
 import type { StyleItem, StyleList } from './core/vbStyle';
 import { c } from './misc/vbPreset';
 import type { vbGraphicObject } from './vbGraphicObject';
@@ -20,7 +20,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
 
     tweens = new vbTweenMap();
     /** @note [Can be used for type check] */
-    desiredSize = new PIXI.Point();
+    desiredSize: Pos2 = { x:0, y:0 };
 
     constructor(desiredWidth?: number, desiredHeight?: number) {
         super();

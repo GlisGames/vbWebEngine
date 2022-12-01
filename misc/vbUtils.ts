@@ -1,5 +1,7 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 /** Any utility functions, extensions etc */
+import type { Pos2 } from '@vb/core/vbTransform';
+
 
 declare global {
     interface Array<T> {
@@ -169,38 +171,12 @@ Math.shuffle = function(arr: any[], n?: number) {
 }
 
 
-export function setNumberFormat(locale: string) {
-    fmtCurrency = fmtItalianCurrency;
-    fmtCurrency0 = fmtItalianCurrency0;
-}
-/** With decimals */
-export var fmtCurrency = (value: number) => { return ''; }
-/** Without decimals */
-export var fmtCurrency0 = (value: number) => { return ''; }
-/** With decimals */
-export var fmtNumber = (value: number) => { return ''; }
-/** Without decimals */
-export var fmtNumber0 = (value: number) => { return ''; }
-
-
-function fmtItalianCurrency0(value: number) {
-    value = Math.floor(value / 100);
-    if (value < 1000)
-        return `€${value}`;
-    else {
-        let units = value % 1000;
-        value = Math.floor(value / 1000);
-        if (value < 1000)
-            return `€${value}.${units.pad0(3)}`;
-        else {
-            let thousands = value % 1000;
-            return `€${value}.${thousands.pad0(3)}.${units.pad0(3)}`;
-        }
-    }
+export function distance2(a: Pos2, b: Pos2) {
+    let dx = a.x - b.x, dy = a.y - b.y;
+    return dx * dx + dy * dy;
 }
 
-function fmtItalianCurrency(value: number) {
-    let decimal = value % 100;
-    let s = fmtCurrency0(value);
-    return `${s},${decimal.pad0(2)}`;
+export function distance(a: Pos2, b: Pos2) {
+    let dx = a.x - b.x, dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
 }
