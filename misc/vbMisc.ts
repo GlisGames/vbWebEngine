@@ -18,6 +18,7 @@ export type {
     StylesTextureMap,
     LocalizationTable
 } from '@vb/core/vbLocalization';
-export type { InteractionFn } from '@vb/core/vbInteractive';
+export type { InteractionFn } from '@vb/core/vbInteraction';
+export { shared } from './vbShared';
 
 export * from './WebUtils';

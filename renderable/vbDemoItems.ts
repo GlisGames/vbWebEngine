@@ -1,5 +1,5 @@
 /** Here to put some simple objects used for demo purpose, like a message box...  */
-import { c } from '@vb/misc/vbPreset';
+import { c } from '@vb/misc/vbShared';
 import { vbButton } from './vbButton';
 import { vbPrimitive, vbShape } from './vbPrimitive';
 import { vbText } from './vbText';

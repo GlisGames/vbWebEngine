@@ -1,7 +1,7 @@
 /** https://pixijs.io/pixi-text-style/# */
 import * as PIXI from 'pixi.js';
 import type { LocalizationTable, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
-import { c } from '@vb/misc/vbPreset';
+import { c } from '@vb/misc/vbShared';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
 

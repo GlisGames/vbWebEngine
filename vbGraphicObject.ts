@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { PivotPoint, setPivotRule, setSpritePivotRule } from './core/vbTransform';
 import type { StyleItem } from './core/vbStyle';
-import { c } from './misc/vbPreset';
+import { c } from './misc/vbShared';
 import type { vbContainer } from './vbContainer';
 
 

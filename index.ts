@@ -17,8 +17,8 @@ export { vbGame } from './vbGame';
 
 export { PivotPoint } from './core/vbTransform';
 export { vbState } from './core/vbState';
-export { vbInteractiveObjectBase } from './core/vbInteractive';
-export type { vbInteractiveObject } from './core/vbInteractive';
+export { vbInteractiveObjectBase } from './core/vbInteraction';
+export type { vbInteractiveObject } from './core/vbInteraction';
 export { vbScene, vbSceneTransition } from './core/vbScene';
 export type { vbLocalizedObject } from './core/vbLocalization';
 
@@ -56,6 +56,6 @@ export {
 
 
 export * as vb from './misc/vbMisc';
-export { c, m } from './misc/vbPreset';
+export { c, m } from './misc/vbShared';
 export { customLoaderAddAssets } from './misc/vbLoader';
 export * from './misc/vbSound';

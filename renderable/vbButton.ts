@@ -1,7 +1,7 @@
 import type { vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbImage } from '@vb/renderable/vbImage';
 import { vbImageLabel, vbLabel, vbPrimiLabel } from './vbLabel';
-import { vbInteractiveObjectBase } from '@vb/core/vbInteractive';
+import { vbInteractiveObjectBase } from '@vb/core/vbInteraction';
 import { vbPrimitive } from './vbPrimitive';
 
 

@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, type Pos2, setPivotRule } from './core/vbTransform';
 import type { StyleItem, StyleList } from './core/vbStyle';
-import { c } from './misc/vbPreset';
+import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
 import { vbTweenMap } from './vbTween';

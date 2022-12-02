@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { c } from '@vb/misc/vbPreset';
+import { c } from '@vb/misc/vbShared';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
 

@@ -5,7 +5,7 @@ import type { LocalizationTable } from './core/vbLocalization';
 import type { STYPE } from '@g/states/StateTypes';
 import type { SpineData } from './renderable/vbSpineObject';
 import type { StyleTable } from './core/vbStyle';
-import { c } from './misc/vbPreset';
+import { c, shared } from './misc/vbShared';
 import { get_SpineMap, get_localeMap, get_multipack_sequenceMap, get_styleMap, get_textureMap, load_assets, load_json } from './misc/vbLoader'
 import { vbContainer } from './vbContainer';
 import { vbPrimitive, vbRectangle } from './renderable/vbPrimitive';
@@ -25,19 +25,9 @@ type LocaleMap = { [code: string]: LocalizationTable };
  * managing all the assets, states, etc...
  */
 export abstract class vbGame extends PIXI.Application {
-    stage = (() => {
-        let stage = new vbContainer();
-        stage.name = 'MainStage';
-        // set the whole screen interactive so it can be clicked
-        stage.interactive = true;
-        return stage;
-    })();
+    stage = new vbContainer();
     /** an invisible rectangle used for interaction */
-    protected _bgRect = (() => {
-        let rect = new vbRectangle(100, 100).fill(c.White, 0);
-        let bg = new vbPrimitive(rect);
-        return bg;
-    })();
+    protected _bgRect: vbPrimitive;
 
     timers = new vbTimerManager();
     desiredWidth = 0;
@@ -66,9 +56,26 @@ export abstract class vbGame extends PIXI.Application {
     spines: SpineMap = {};
     sounds = {} as vbSoundManager;
 
+    /**
+     * https://pixijs.download/v6.5.8/docs/PIXI.Application.html
+     * @param {object} [options] - The optional application parameters.
+     */
+    constructor(options?: PIXI.IApplicationOptions) {
+        PIXI.settings.RESOLUTION = window.devicePixelRatio;
+        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio;
+        super(options);
+        shared.init();
 
-    async initAssets() {
+        this.stage.name = 'MainStage';
+        // set the whole screen interactive so it can be clicked
+        this.stage.interactive = true;
+        // add the invisible rectangle to stage;
+        let rect = new vbRectangle(100, 100).fill(c.White, 0);
+        this._bgRect = new vbPrimitive(rect);
         this.stage.addObj(this._bgRect, -9998);
+    }
+    
+    async initAssets() {
         // file list json has all the assets that need to be fetched
         let assets = <AssetList>(await load_json('assets-list.json'));
         let loader = this.loader;

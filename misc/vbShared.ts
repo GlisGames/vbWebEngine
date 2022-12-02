@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/no-loss-of-precision: 0 */
-/** Any presets variables, objects, math defines etc. */
+/** Any shared variables, objects, math defines etc. */
+import { ColorOverlayFilter } from 'pixi-filters'
 
 
 /** colors */
@@ -55,3 +56,15 @@ export const m = {
     /** 1/sqrt(2) */
     _1_sqrt2: 0.707106781186547524401,
 }
+
+
+class SharedObjects {
+    colorFilter = {} as ColorOverlayFilter;
+
+    init() {
+        this.colorFilter = new ColorOverlayFilter();
+    }
+}
+
+
+export var shared = new SharedObjects();

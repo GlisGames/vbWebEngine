@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { AnimatedSprite, Sprite } from 'pixi.js'
 import type { StyleItem } from '@vb/core/vbStyle';
-import { c } from '@vb/misc/vbPreset';
+import { c } from '@vb/misc/vbShared';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
 
