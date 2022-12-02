@@ -148,4 +148,8 @@ export type vbTextInitOptions = {
         if (item === undefined) return;
         Object.assign(this.style, vbText.getLocalizedStyle(this, item));
     }
+
+    clear() {
+        this.text = '';
+    }
 }
