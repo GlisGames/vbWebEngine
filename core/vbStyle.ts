@@ -4,7 +4,7 @@ export type StyleItem = {
     xy?: [number, number],
     /** scale */
     s?: number,
-    /** width and height [w, h] */
+    /** (scaled/stretched) width and height [w, h] */
     wh?: [number, number],
 }
 
@@ -17,4 +17,15 @@ export type StyleTable = {
     /** specified by the filename of json */
     name: string,
     list: StyleList
+}
+
+
+export interface ContainerStyleItem extends StyleItem {
+    /** desired size */
+    dwh?: [number, number]
+}
+
+export interface ImageStyleItem extends StyleItem {
+    /** texture name */
+    tex?: string
 }

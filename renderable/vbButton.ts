@@ -5,17 +5,13 @@ import { vbInteractiveObjectBase } from '@vb/core/vbInteraction';
 import { vbPrimitive } from './vbPrimitive';
 
 
-const _vbImageButton = vbInteractiveObjectBase(vbImage);
-export class vbImageButton extends _vbImageButton {}
+export class vbImageButton extends vbInteractiveObjectBase(vbImage) {}
 
-const _vbImageLabelButton = vbInteractiveObjectBase(vbImageLabel);
-export class vbImageLabelButton extends _vbImageLabelButton {}
+export class vbImageLabelButton extends vbInteractiveObjectBase(vbImageLabel) {}
 
-const _vbPrimiButton = vbInteractiveObjectBase(vbPrimitive);
-export class vbPrimiButton extends _vbPrimiButton {}
+export class vbPrimiButton extends vbInteractiveObjectBase(vbPrimitive) {}
 
-const _vbPrimiLabelButton = vbInteractiveObjectBase(vbPrimiLabel);
-export class vbPrimiLabelButton extends _vbPrimiLabelButton {}
+export class vbPrimiLabelButton extends vbInteractiveObjectBase(vbPrimiLabel) {}
 
 
 /**

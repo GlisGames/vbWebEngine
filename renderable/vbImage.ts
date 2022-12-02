@@ -1,14 +1,9 @@
 import * as PIXI from 'pixi.js';
 import { AnimatedSprite, Sprite } from 'pixi.js'
-import type { StyleItem } from '@vb/core/vbStyle';
+import type { ImageStyleItem } from '@vb/core/vbStyle';
 import { c } from '@vb/misc/vbShared';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
-
-export interface ImageStyleItem extends StyleItem {
-    /** texture name */
-    tex?: string;
-}
 
 export class vbImage extends vbGraphicObjectBase(Sprite) {
     /**

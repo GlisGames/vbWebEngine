@@ -1,4 +1,4 @@
-/* eslint @typescript-eslint/no-loss-of-precision: 0 */
+/* eslint-disable @typescript-eslint/no-loss-of-precision */
 /** Any shared variables, objects, math defines etc. */
 import { ColorOverlayFilter } from 'pixi-filters'
 

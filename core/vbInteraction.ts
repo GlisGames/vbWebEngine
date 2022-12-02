@@ -15,6 +15,7 @@ export type InteractionFn = (e: PIXI.InteractionEvent) => void;
     readonly pointerupFn?: InteractionFn;
     readonly pointeroverFn?: InteractionFn;
     readonly pointeroutFn?: InteractionFn;
+    readonly pointerupoutsideFn?: InteractionFn;
     /**
      * Set the click event (use `pointerup` currently)
      * 
@@ -22,7 +23,7 @@ export type InteractionFn = (e: PIXI.InteractionEvent) => void;
      * @param [on] If `fn` is a function, `on` determines whether to turn on the event.
      * Sometimes you just want to initialize with a function but turn it on later.
      */
-    setOnClick(fn: InteractionFn | boolean, on: boolean): this;
+    setOnClick(fn: InteractionFn | boolean, on?: boolean): this;
     /**
      * Use default color overlay effect when the pointer hovers over it.
      * Ignore it on mobile devices.
@@ -48,11 +49,11 @@ export type InteractionFn = (e: PIXI.InteractionEvent) => void;
      * Manually set a pointer event. \
      * Note that usually you don't need this since default methods are enough.
      * 
-     * @param [event] pointerdown / pointerup / pointerover / pointerout
+     * @param [event] pointerdown / pointerup / pointerover / pointerout / pointerupoutside
      * @param [fn] see setClick
      * @param [on] see setClick
      */
-    pointer(event: 'down'|'up'|'over'|'out', fn: InteractionFn | boolean, on?: boolean): this;
+    pointer(event: 'down'|'up'|'over'|'out'|'upoutside', fn: InteractionFn | boolean, on?: boolean): this;
 }
 
 
@@ -64,17 +65,20 @@ export type InteractionFn = (e: PIXI.InteractionEvent) => void;
 export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>>(Other: TOther) {
     return class InteractiveObject extends Other implements vbInteractiveObject {
         interactive = true;
+        isPointerDown = false;
 
         protected _click_fn?: InteractionFn;
         protected _down_fn?: InteractionFn;
         protected _up_fn?: InteractionFn;
         protected _over_fn?: InteractionFn;
         protected _out_fn?: InteractionFn;
+        protected _upoutside_fn?: InteractionFn;
         get clickFn() { return this._click_fn; }
         get pointerdownFn() { return this._down_fn; }
         get pointerupFn() { return this._up_fn; }
         get pointeroverFn() { return this._over_fn; }
         get pointeroutFn() { return this._out_fn; }
+        get pointerupoutsideFn() { return this._upoutside_fn; }
 
         setOnClick(fn: InteractionFn | boolean, on=true) {
             this._click_fn = this._setEventCallback('pointerup', this._click_fn, fn, on);
@@ -89,6 +93,10 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
                 return this;
             }
             const pointeroverFn = (e: PIXI.InteractionEvent) => {
+                if (this.isPointerDown) {
+                    if (this._down_fn !== undefined) this._down_fn(e);
+                    return;
+                }
                 filter.color = color;
                 filter.alpha = alpha;
                 if (!this.filters?.includes(filter))
@@ -110,22 +118,26 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
                 this.filters = [];
             }
             const pointerdownFn = () => {
+                this.isPointerDown = true;
                 filter.color = color;
                 filter.alpha = alpha;
                 if (!this.filters?.includes(filter))
                     this.filters?.push(filter);
             }
             const pointerupFn = () => {
+                this.isPointerDown = false;
                 this.filters?.removeOnce(filter);
             }
-            return this.pointer('down', pointerdownFn, on).pointer('up', pointerupFn, on);
+            return this.pointer('down', pointerdownFn, on)
+                       .pointer('up', pointerupFn, on)
+                       .pointer('upoutside', pointerupFn, on);
         }
 
         setClickEffect(on: boolean) {
             return this.pointer('down', on).pointer('up', on);
         }
 
-        pointer(event: 'down'|'up'|'over'|'out', fn: InteractionFn | boolean, on=true) {
+        pointer(event: 'down'|'up'|'over'|'out'|'upoutside', fn: InteractionFn | boolean, on=true) {
             switch (event) {
                 case 'down': {
                     this._down_fn = this._setEventCallback('pointerdown', this._down_fn, fn, on); break;
@@ -138,6 +150,9 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
                 }
                 case 'out': {
                     this._out_fn = this._setEventCallback('pointerout', this._out_fn, fn, on); break;
+                }
+                case 'upoutside': {
+                    this._upoutside_fn = this._setEventCallback('pointerupoutside', this._upoutside_fn, fn, on); break;
                 }
             }
             return this;

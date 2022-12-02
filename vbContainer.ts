@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, type Pos2, setPivotRule } from './core/vbTransform';
-import type { StyleItem, StyleList } from './core/vbStyle';
+import type { ContainerStyleItem, StyleList } from './core/vbStyle';
 import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
@@ -200,17 +200,11 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         }
     }
 
-    applyStyle(item: StyleItem) {
-        if (item.xy !== undefined) {
-            this.x = item.xy[0];
-            this.y = item.xy[1];
-        }
-        if (item.s !== undefined) {
-            this.scale.set(item.s);
-        }
-        if (item.wh !== undefined) {
-            this.desiredSize.x = item.wh[0];
-            this.desiredSize.y = item.wh[1];
+    applyStyle(item: ContainerStyleItem) {
+        super.applyStyle(item);
+        if (item.dwh !== undefined) {
+            this.desiredSize.x = item.dwh[0];
+            this.desiredSize.y = item.dwh[1];
             this.setDesiredSize();
         }
     }

@@ -83,7 +83,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
         }
 
         get parentContainer() {
-            return <vbContainer><any>this.parent;
+            return <vbContainer>this.parent;
         }
         hasParent() {
             return this.parent !== null;
@@ -193,8 +193,8 @@ export type vbGraphicObject = BaseClass;
  * However, type (or interface) and class are different concepts in Typescript,
  * so we have to use a type constructor to construct the omitted class: \
  * https://stackoverflow.com/questions/68021829/i-want-to-extend-from-one-class-but-delete-some-property \
- * This solution is very tricky and can cause lot of issues, so we decided to not use it.
+ * This solution is very tricky and can cause lot of issues.
  * @returns "Class" object
  */
-const OmitClassCons = <T, K extends string>(Base: new (...args: any) => T):
+const _OmitClassCons = <T, K extends string>(Base: new (...args: any) => T):
     new (...args: any) => Omit<T, K> => Base;

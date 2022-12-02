@@ -1,4 +1,4 @@
-/* eslint @typescript-eslint/no-explicit-any: 0 */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /** Any utility functions, extensions etc */
 import type { Pos2 } from '@vb/core/vbTransform';
 

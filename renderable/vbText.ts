@@ -118,30 +118,38 @@ export type vbTextInitOptions = {
         return style;
     }
 
+    /**
+     * Set text using a key in localization table. (It assumes the item is a string, not an array or map)
+     */
     setKey(key: string) {
         this._key = key;
-        let text = globalThis.pgame.currLocale.dict[key];
+        let text = <string>globalThis.pgame.currLocale.dict[key];
         if (text !== undefined)
             this.text = text;
     }
 
     /**
+     * Set text using a key in localization table. (It assumes the item is a string, not an array or map) \
      * Format {0}, {1}, ... to arguments.
      */
     setKeyFormat(key: string, ...args: (string | number)[]) {
         this._key = key;
-        let formatText = globalThis.pgame.currLocale.dict[key];
-        if (formatText !== undefined) {
-            let replaceMap: { [from: string]: string | number} = {};
-            for (let i = 0; i < args.length; i++) {
-                replaceMap[`{${i}}`] = args[i];
-            }
-            this.text = formatText.mapReplace(replaceMap);
+        let fmtText = <string>globalThis.pgame.currLocale.dict[key];
+        if (fmtText !== undefined) {
+            this.text = vbText.format(fmtText, ...args);
         }
     }
 
+    static format(fmt: string, ...args: (string | number)[]) {
+        let replaceMap: { [from: string]: string | number} = {};
+        for (let i = 0; i < args.length; i++) {
+            replaceMap[`{${i}}`] = args[i];
+        }
+        return fmt.mapReplace(replaceMap);
+    }
+
     localize(table: LocalizationTable, item?: TextStyleItem) {
-        let text = table.dict[this._key];
+        let text = <string>table.dict[this._key];
         if (text !== undefined)
             this.text = text;
 

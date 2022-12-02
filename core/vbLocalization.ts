@@ -15,26 +15,21 @@ export type TextStyleItem = {
 }
 
 /** Each name of vbLocalizedObject maps a text style item */
-export type LocalizedStyleList = {
+type TextStyleList = {
     [name: string]: TextStyleItem
 }
 
-/** Each key name maps a text string */
+/**
+ * Each key name maps a text string. \
+ * But sometimes it may need a list, or even a map.
+ */
 type LocalizedDictionary = {
-    [key: string]: string
+    [key: string]:
+        string
+        | string[]
+        | { [key: string]: string }
 }
 
-/** Sometimes it may need a list? */
-type LocalizedDictList = {
-    [key: string]: string[]
-}
-
-/** Sometimes it may even need a map?? */
-type LocalizedDictMap = {
-    [key: string]: {
-        [key: string]: string
-    }
-}
 
 /**
  * For localized image, each key name maps a texture,
@@ -58,10 +53,8 @@ export type LocalizationTable = {
     defaultFont: string | string[],
 
     dict: LocalizedDictionary,
-    dictList: LocalizedDictList,
-    dictMap: LocalizedDictMap,
     textures: LocalizedTextureMap,
-    styles: LocalizedStyleList
+    styles: TextStyleList
 }
 
 export interface vbLocalizedObject extends vbGraphicObject {
