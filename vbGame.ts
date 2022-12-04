@@ -8,6 +8,7 @@ import type { StyleTable } from './core/vbStyle';
 import { c, shared } from './misc/vbShared';
 import { get_SpineMap, get_localeMap, get_multipack_sequenceMap, get_styleMap, get_textureMap, load_assets, load_json } from './misc/vbLoader'
 import { vbContainer } from './vbContainer';
+import { vbInteractionManager } from './core/vbInteraction';
 import { vbPrimitive, vbRectangle } from './renderable/vbPrimitive';
 import { vbSoundManager, vbSoundManagerInstance } from './misc/vbSound';
 import type { vbState } from './core/vbState';
@@ -30,6 +31,8 @@ export abstract class vbGame extends PIXI.Application {
     protected _bgRect: vbPrimitive;
 
     timers = new vbTimerManager();
+    interaction: vbInteractionManager;
+    
     desiredWidth = 0;
     desiredHeight = 0;
     /** height / width */
@@ -64,6 +67,8 @@ export abstract class vbGame extends PIXI.Application {
         PIXI.settings.RESOLUTION = window.devicePixelRatio;
         PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio;
         super(options);
+
+        this.interaction = new vbInteractionManager(this.timers);
         shared.init();
 
         this.stage.name = 'MainStage';

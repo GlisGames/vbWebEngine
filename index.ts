@@ -7,8 +7,8 @@ export * as PIXIF from 'pixi-filters';
 export { Easing, Interpolation } from '@tweenjs/tween.js';
 
 
-export { vbGraphicObjectBase } from './vbGraphicObject';
-export type { vbGraphicObject, TypeCons } from './vbGraphicObject';
+export { vbGraphicObject, vbGraphicObjectBase } from './vbGraphicObject';
+export type { TypeCons } from './vbGraphicObject';
 
 export { vbContainer } from './vbContainer';
 export { vbTimer } from './vbTimer';
@@ -17,10 +17,13 @@ export { vbGame } from './vbGame';
 
 export { PivotPoint } from './core/vbTransform';
 export { vbState } from './core/vbState';
-export { vbInteractiveObjectBase } from './core/vbInteraction';
-export type { vbInteractiveObject } from './core/vbInteraction';
 export { vbScene, vbSceneTransition } from './core/vbScene';
 export type { vbLocalizedObject } from './core/vbLocalization';
+export {
+    vbInteractiveObject,
+    vbInteractiveObjectBase,
+    vbInteractionManager
+} from './core/vbInteraction';
 
 
 export { vbSpineObject } from './renderable/vbSpineObject';

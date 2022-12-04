@@ -36,9 +36,9 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
         });
     }
 
-    get displayed() { return this.renderable; }
+    get displayed() { return this.visible; }
     set displayed(en: boolean) {
-        this.renderable = this.interactive = this.interactiveChildren = en;
+        this.visible = this.interactive = this.interactiveChildren = en;
     }
 
     /**

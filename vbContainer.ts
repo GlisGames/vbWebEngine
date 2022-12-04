@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
+import type { ContainerStyleItem, StyleList } from './core/vbStyle';
 import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, type Pos2, setPivotRule } from './core/vbTransform';
-import type { ContainerStyleItem, StyleList } from './core/vbStyle';
 import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
@@ -220,7 +220,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
      * Show a debug rectangle with desiredSize
      */
     get debugBox() {
-        return (this._debugBox !== undefined) && (this._debugBox.renderable);
+        return (this._debugBox !== undefined) && (this._debugBox.visible);
     }
     set debugBox(enable: boolean) {
         this._showDebugBox(enable, this.desiredSize.x, this.desiredSize.y);

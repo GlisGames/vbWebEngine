@@ -1,178 +1,212 @@
 import type * as PIXI from 'pixi.js';
-import type { ColorOverlayFilter } from 'pixi-filters'
-import type { TypeCons, vbGraphicObject } from '@vb/vbGraphicObject';
+import { ColorOverlayFilter } from 'pixi-filters'
+import type { TypeCons } from '@vb/vbGraphicObject';
 import { isMobile } from '@vb/misc/WebUtils';
+import type { vbContainer } from '@vb/vbContainer';
+import { vbGraphicObject } from '@vb/vbGraphicObject';
+import { vbTimer } from '@vb/vbTimer';
+import type { vbTimerManager } from '@vb/vbTimer';
 
 
 export type InteractionFn = (e: PIXI.InteractionEvent) => void;
 
-/**
- * A utility class to easily set or toggle pointer events, with default effect.
- */
- export interface vbInteractiveObject extends vbGraphicObject {
-    readonly clickFn?: InteractionFn;
-    readonly pointerdownFn?: InteractionFn;
-    readonly pointerupFn?: InteractionFn;
-    readonly pointeroverFn?: InteractionFn;
-    readonly pointeroutFn?: InteractionFn;
-    readonly pointerupoutsideFn?: InteractionFn;
-    /**
-     * Set the click event (use `pointerup` currently)
-     * 
-     * @param [fn] If it's a boolean and the function has already been given, the event will be toggled on/off.
-     * @param [on] If `fn` is a function, `on` determines whether to turn on the event.
-     * Sometimes you just want to initialize with a function but turn it on later.
-     */
-    setOnClick(fn: InteractionFn | boolean, on?: boolean): this;
-    /**
-     * Use default color overlay effect when the pointer hovers over it.
-     * Ignore it on mobile devices.
-     * 
-     * @param [on] see setClick
-     */
-    defaultHoverEffect(filter: ColorOverlayFilter, color: number, alpha: number, on?: boolean): this;
-    /**
-     * Turn the hover effect on or off after you set it.
-     */
-    setHoverEffect(on: boolean): this;
-    /**
-     * Use default color overlay effect when the pointer clicks on it.
-     * 
-     * @param [on] see setClick
-     */
-    defaultClickEffect(filter: ColorOverlayFilter, color: number, alpha: number, on?: boolean): this;
-    /**
-     * Turn the hover effect on or off after you set it.
-     */
-    setClickEffect(on: boolean): this;
-    /**
-     * Manually set a pointer event. \
-     * Note that usually you don't need this since default methods are enough.
-     * 
-     * @param [event] pointerdown / pointerup / pointerover / pointerout / pointerupoutside
-     * @param [fn] see setClick
-     * @param [on] see setClick
-     */
-    pointer(event: 'down'|'up'|'over'|'out'|'upoutside', fn: InteractionFn | boolean, on?: boolean): this;
-}
-
+type PointerEvent = 'tap'|'down'|'up'|'over'|'out'|'upoutside'|'cancel';
 
 /**
  * Mixin to make other classes as InteractiveObject. \
- * Technically the event emitter allows to bind multiple callbacks for one event,
- * but for simplicity we only set one at a time.
+ * A utility class to easily set or toggle events, with frequently used default effect. \
+ * Technically the event system allows to bind multiple listener callbacks for one event,
+ * but for simplicity we only set one at a time so that it's easier to toggle on/off.
  */
 export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>>(Other: TOther) {
-    return class InteractiveObject extends Other implements vbInteractiveObject {
+    return class InteractiveObject extends Other {
         interactive = true;
         isPointerDown = false;
+        protected _defaultColorFilter?: ColorOverlayFilter;
+        /**
+         * Stored event names and their listener callbacks. \
+         * (Vanilla event system doesn't keep the callbacks after you remove them)
+         */
+        protected _assignedListeners: Record<string, InteractionFn> = {};
 
-        protected _click_fn?: InteractionFn;
-        protected _down_fn?: InteractionFn;
-        protected _up_fn?: InteractionFn;
-        protected _over_fn?: InteractionFn;
-        protected _out_fn?: InteractionFn;
-        protected _upoutside_fn?: InteractionFn;
-        get clickFn() { return this._click_fn; }
-        get pointerdownFn() { return this._down_fn; }
-        get pointerupFn() { return this._up_fn; }
-        get pointeroverFn() { return this._over_fn; }
-        get pointeroutFn() { return this._out_fn; }
-        get pointerupoutsideFn() { return this._upoutside_fn; }
+        getListenerFn(event: string): InteractionFn | undefined {
+            return this._assignedListeners[event];
+        }
 
-        setOnClick(fn: InteractionFn | boolean, on=true) {
-            this._click_fn = this._setEventCallback('pointerup', this._click_fn, fn, on);
+        /**
+         * Manually set a event listener callback. \
+         * (Note that usually you don't need this since default methods are enough.)
+         * 
+         * @param [event] Event name
+         * @param [fn] If it's a boolean and the function has already been given, the event will be toggled on/off.
+         * @param [on] If `fn` is a function, `on` determines whether to turn on the event.
+         * Sometimes you just want to initialize with a function but turn it on later.
+         */
+        setEvent(event: string, fn: InteractionFn | boolean, on=true) {
+            let oldFn = this._assignedListeners[event];
+            // clear the current callback anyway to prevent duplication
+            if (oldFn !== undefined)
+                this.off(event, oldFn);
+
+            if (fn === true) {
+                if (oldFn !== undefined)
+                    this.on(event, oldFn);
+            }
+            else if (fn !== false) {
+                this._assignedListeners[event] = fn;
+                if (on) this.on(event, fn);
+            }
             return this;
         }
-        
-        defaultHoverEffect(filter: ColorOverlayFilter, color: number, alpha: number, on=true) {
-            if (this.filters === null) {
-                this.filters = [];
-            }
+
+        /**
+         * Manually set a pointer event listener callback. \
+         * This is just a shorthand of `setEvent` method since pointer events are most used.
+         * 
+         * @param [event] pointertap, pointerdown, pointerup, pointerover, pointerout, pointerupoutside, pointercancel
+         */
+        pointer(event: PointerEvent, fn: InteractionFn | boolean, on=true) {
+            return this.setEvent('pointer' + event, fn, on);
+        }
+
+        /**
+         * Set the click event (use `pointertap` currently)
+         * 
+         * @param see `setEvent` 
+         */
+        setOnClick(fn: InteractionFn | boolean, on=true) {
+            return this.setEvent('pointertap', fn, on);
+        }
+
+        /**
+         * Use default color overlay effect when the pointer hovers over it. (Ignore on mobile devices) \
+         * Use `pointerover` and `pointerout` events.
+         * 
+         * @param [filter] Use this one if specified. Otherwise
+         */
+        defaultHoverEffect(color: number, alpha: number, filter?: ColorOverlayFilter) {
             if (isMobile()) {
                 return this;
             }
+            if (filter === undefined) {
+                if (this._defaultColorFilter === undefined)
+                    this._defaultColorFilter = new ColorOverlayFilter();
+                filter = this._defaultColorFilter;
+            }
+            const _filter = filter;
             const pointeroverFn = (e: PIXI.InteractionEvent) => {
                 if (this.isPointerDown) {
-                    if (this._down_fn !== undefined) this._down_fn(e);
+                    let pointerdown_fn = this.getListenerFn('pointerdown');
+                    if (pointerdown_fn !== undefined) pointerdown_fn(e);
                     return;
                 }
-                filter.color = color;
-                filter.alpha = alpha;
-                if (!this.filters?.includes(filter))
-                    this.filters?.push(filter);
+                _filter.color = color;
+                _filter.alpha = alpha;
+                if (!this.filters?.includes(_filter))
+                    this.addFilter(_filter);
             };
             const pointeroutFn = () => {
-                this.filters?.removeOnce(filter);
+                this.filters?.removeOnce(_filter);
             }
-            this.pointer('over', pointeroverFn, on).pointer('out', pointeroutFn, on);
-            return this;
+            return this.pointer('over', pointeroverFn)
+                       .pointer('out', pointeroutFn);
         }
-
+        /**
+         * Turn the hover effect on or off after you set it.
+         */
         setHoverEffect(on: boolean) {
             return this.pointer('over', on).pointer('out', on);
         }
 
-        defaultClickEffect(filter: ColorOverlayFilter, color: number, alpha: number, on=true) {
-            if (this.filters === null) {
-                this.filters = [];
+        /**
+         * Use default color overlay effect when the pointer clicks on it. \
+         * Use `pointerdown`, `pointerup` and `pointerupoutside` events.
+         */
+        defaultClickEffect(color: number, alpha: number, filter?: ColorOverlayFilter) {
+            if (filter === undefined) {
+                if (this._defaultColorFilter === undefined)
+                    this._defaultColorFilter = new ColorOverlayFilter();
+                filter = this._defaultColorFilter;
             }
+            const _filter = filter;
             const pointerdownFn = () => {
                 this.isPointerDown = true;
-                filter.color = color;
-                filter.alpha = alpha;
-                if (!this.filters?.includes(filter))
-                    this.filters?.push(filter);
+                _filter.color = color;
+                _filter.alpha = alpha;
+                if (!this.filters?.includes(_filter))
+                    this.addFilter(_filter);
             }
             const pointerupFn = () => {
                 this.isPointerDown = false;
-                this.filters?.removeOnce(filter);
+                this.filters?.removeOnce(_filter);
             }
-            return this.pointer('down', pointerdownFn, on)
-                       .pointer('up', pointerupFn, on)
-                       .pointer('upoutside', pointerupFn, on);
+            return this.pointer('down', pointerdownFn)
+                       .pointer('up', pointerupFn)
+                       .pointer('upoutside', pointerupFn);            
         }
-
+        /**
+         * Turn the hover effect on or off after you set it.
+         */
         setClickEffect(on: boolean) {
-            return this.pointer('down', on).pointer('up', on);
+            return this.pointer('down', on).pointer('up', on).pointer('upoutside', on);
+        }
+    }
+}
+
+
+/**
+ * An empty interactive object base class. \
+ * Generated by: `vbInteractiveObjectBase(vbGraphicObject)` \
+ * It is suggested that only use this as type hint.
+ */
+export class vbInteractiveObject extends vbInteractiveObjectBase(vbGraphicObject) {}
+
+
+export class vbInteractionManager {
+    protected _delayEnableExit: vbTimer;
+    protected _delayEnableClick: vbTimer;
+    
+    constructor(globalTimer: vbTimerManager) {
+        this._delayEnableExit = new vbTimer(globalTimer, 200);
+        this._delayEnableClick = new vbTimer(globalTimer, 200);
+    }
+
+    /**
+     * This method is only used in a specific scenario,
+     * where there's a button to open an object (typically a container), and you expect to click anywhere on the screen
+     * except that object to close it.
+     * 
+     * @param [btn] the button to set onClick event
+     * @param [enterFn] the callback to open the object
+     * @param [exitFn] the callback to close the object
+     * @param [bound] a container to detect if the exitFn should be called
+     */
+    wrapGlobalClickEvent(btn: vbInteractiveObject, enterFn: InteractionFn, exitFn: InteractionFn, bound?: vbContainer) {
+        const wrappedEnterFn = (e: PIXI.InteractionEvent) => {
+            enterFn(e);
+            btn.setOnClick(false);
+            this._delayEnableExit.restart();
         }
 
-        pointer(event: 'down'|'up'|'over'|'out'|'upoutside', fn: InteractionFn | boolean, on=true) {
-            switch (event) {
-                case 'down': {
-                    this._down_fn = this._setEventCallback('pointerdown', this._down_fn, fn, on); break;
-                }
-                case 'up': {
-                    this._up_fn = this._setEventCallback('pointerup', this._up_fn, fn, on); break;
-                }
-                case 'over': {
-                    this._over_fn = this._setEventCallback('pointerover', this._over_fn, fn, on); break;
-                }
-                case 'out': {
-                    this._out_fn = this._setEventCallback('pointerout', this._out_fn, fn, on); break;
-                }
-                case 'upoutside': {
-                    this._upoutside_fn = this._setEventCallback('pointerupoutside', this._upoutside_fn, fn, on); break;
-                }
+        const wrappedExitFn = (e: PIXI.InteractionEvent) => {
+            if (bound?.containsInteraction(e)) {
+                // player clicks inside bound, does nothing
+                return;
             }
-            return this;
+
+            exitFn(e);
+            globalThis.pgame.stage.off('pointertap', wrappedExitFn);
+            this._delayEnableClick.restart();
         }
 
-        protected _setEventCallback(eventName: string, oldFn: InteractionFn | undefined, fn: InteractionFn | boolean, on: boolean) {
-            let newFn = oldFn;
-            // clear the current callback anyway to prevent duplication
-            if (oldFn !== undefined)
-                this.off(eventName, oldFn);
+        // take a short delay when player open or close the object to avoid immediate re-enter.
+        this._delayEnableExit.clearOnEnd().onEnd(() => {
+            globalThis.pgame.stage.on('pointertap', wrappedExitFn);
+        });
+        this._delayEnableClick.clearOnEnd().onEnd(() => {
+            btn.setOnClick(true);
+        });
 
-            if (fn === true) {
-                if (oldFn !== undefined)
-                    this.on(eventName, oldFn);
-            }
-            else if (fn !== false) {
-                newFn = fn;
-                if (on) this.on(eventName, fn);
-            }
-            return newFn;
-        }
+        btn.setOnClick(wrappedEnterFn);
     }
 }
