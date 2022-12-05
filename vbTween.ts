@@ -93,6 +93,7 @@ export class vbTweenMap extends TWEEN.Group {
             this.twmap = new Map<string, vbTween<any>>();
         }
         let tw = new vbTween(name, obj, this).to(to, duration);
+        if (this.twmap.has(name)) throw ReferenceError(`Tween "${name}" already exists!`);
         this.twmap.set(name, tw);
         return tw;
     }
@@ -105,7 +106,8 @@ export class vbTweenMap extends TWEEN.Group {
         if (this.twmap === undefined) {
             this.twmap = new Map<string, vbTween<UnknownProps>>();
         }
-        this.twmap?.set(tw.name, tw);
+        if (this.twmap.has(tw.name)) throw ReferenceError(`Tween "${tw.name}" already exists!`);
+        this.twmap.set(tw.name, tw);
         tw.group(this);
     }
 

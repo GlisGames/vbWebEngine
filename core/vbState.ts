@@ -4,6 +4,8 @@ import { vbTimer, vbTimerManager } from '../vbTimer';
 
 export class vbState {
     protected _firstIn = true;
+    protected _firstOut = true;
+    protected _canExit = false;
     protected _name: STYPE;
     protected _nextState: STYPE;
     timers: vbTimerManager;
@@ -17,21 +19,32 @@ export class vbState {
     get name() { return this._name; }
 
     enter() {}
-    exit() {}
     update(deltaFrame: number) {}
+
+    /**
+     * Things to do before the actual exit, set `_canExit` to true when it's ready to exit.
+     */
+    prepareExit() {
+        this._canExit = true;
+    }
+    /**
+     * The actual exit() is called when `_canExit` set to true.
+     */
+    exit() {}
 
     setNext(stateName: STYPE) {
         this._nextState = stateName;
     }
 
     /** run finite state machine */
-    runFSM(deltaFrame: number) {
+    runFSM(deltaFrame: number): STYPE {
         // enter
         if (this._firstIn) {
             this._firstIn = false;
+            this._firstOut = true;
+            this._canExit = false;
             this._nextState = '';
             this.enter();
-            globalThis.pgame.stage.enterState(this.name);
         }
         // firstly, update timers
         globalThis.pgame.timers.update(globalThis.pgame.DeltaMS);
@@ -40,12 +53,17 @@ export class vbState {
         this.update(deltaFrame);
         // exit
         if (this._nextState != '') {
-            this._firstIn = true;
-            globalThis.pgame.stage.exitState(this.name);
-            this.exit();
+            if (this._firstOut) {
+                this._firstOut = false;
+                this.prepareExit();
+            }
+            if (this._canExit) {
+                this._firstIn = true;
+                this.exit();
+                return this._nextState;
+            }
         }
-
-        return this._nextState;
+        return '';
     }
 
     /**

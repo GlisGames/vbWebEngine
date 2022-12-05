@@ -11,13 +11,13 @@ export class vbImage extends vbGraphicObjectBase(Sprite) {
      */
     constructor(texName?: string) {
         if (texName !== undefined)
-            super(globalThis.pgame.textures[texName]);
+            super(globalThis.pgame.getTex(texName));
         else
             super();
     }
 
     setTex(texName: string) {
-        this.texture = globalThis.pgame.textures[texName];
+        this.texture = globalThis.pgame.getTex(texName);
     }
 
     applyStyle(item: ImageStyleItem) {
@@ -37,7 +37,7 @@ export class vbSequence extends vbGraphicObjectBase(AnimatedSprite) {
      * @param [seqName] Name of sequence in sequence map.
      */
     constructor(seqName: string, FPS?: number) {
-        super(globalThis.pgame.sequences[seqName], false);
+        super(globalThis.pgame.getSeq(seqName), false);
         if (FPS !== undefined) this.FPS = FPS;
     }
 

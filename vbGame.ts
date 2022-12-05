@@ -42,21 +42,21 @@ export abstract class vbGame extends PIXI.Application {
      * everytime when the desiredResolution has changed, (style change, etc.) \
      * And also can be added to window event listener.
      */
-    resizeAppFn = (contentWidth: number, contentHeight: number) => { };
+    resizeAppFn = (contentWidth: number, contentHeight: number) => {};
 
     /** current state */
     currState = {} as vbState;
-    states: StateMap = {};
+    protected _states: StateMap = {};
     /** current style */
     currStyle = {} as StyleTable;
-    styles: StyleMap = {};
+    protected _styles: StyleMap = {};
     /** current locale */
     currLocale = {} as LocalizationTable;
-    locales: LocaleMap = {};
+    protected _locales: LocaleMap = {};
 
-    textures: TextureMap = {};
-    sequences: SequenceMap = {};
-    spines: SpineMap = {};
+    protected _textures: TextureMap = {};
+    protected _sequences: SequenceMap = {};
+    protected _spines: SpineMap = {};
     sounds = {} as vbSoundManager;
 
     /**
@@ -86,12 +86,12 @@ export abstract class vbGame extends PIXI.Application {
         let loader = this.loader;
         await load_assets(loader, assets);
 
-        this.textures = get_textureMap(loader, assets);
-        this.sequences = get_multipack_sequenceMap(loader, assets);
-        this.spines = get_SpineMap(loader, assets);
-        this.styles = get_styleMap(loader, assets);
+        this._textures = get_textureMap(loader, assets);
+        this._sequences = get_multipack_sequenceMap(loader, assets);
+        this._spines = get_SpineMap(loader, assets);
+        this._styles = get_styleMap(loader, assets);
         this.sounds = vbSoundManagerInstance;
-        this.locales = get_localeMap(loader, assets);
+        this._locales = get_localeMap(loader, assets);
     }
 
     mainLoop(deltaFrame: number) { }
@@ -105,19 +105,6 @@ export abstract class vbGame extends PIXI.Application {
             // this check is used for preventing redundant callbacks.
             this.ticker.add(this.mainLoop);
         }
-    }
-
-    addState(state: vbState) {
-        this.states[state.name] = state;
-    }
-    setState(stateName: STYPE) {
-        this.currState = this.states[stateName];
-    }
-    setStyle(name: string) {
-        this.currStyle = this.styles[name];
-    }
-    setLocale(code: string) {
-        this.currLocale = this.locales[code];
     }
 
     setResolution(width: number, height: number) {
@@ -152,6 +139,50 @@ export abstract class vbGame extends PIXI.Application {
 
     applyCurrentLocale() {
         this.stage.localizeChildren(this.currLocale);
+    }
+
+    addState(state: vbState) {
+        this._states[state.name] = state;
+    }
+    getState(stateName: STYPE) {
+        const r = this._states[stateName];
+        if (r === undefined) throw ReferenceError(`Cannot find state ${stateName}`);
+        return r;
+    }
+    setState(stateName: STYPE) {
+        this.currState = this.getState(stateName);
+    }
+    getStyle(name: string) {
+        const r = this._styles[name];
+        if (r === undefined) throw ReferenceError(`Cannot find style ${name}`);
+        return r;
+    }
+    setStyle(name: string) {
+        this.currStyle = this.getStyle(name);
+    }
+    getLocale(code: string) {
+        const r = this._locales[code];
+        if (r === undefined) throw ReferenceError(`Cannot find locale ${code}`);
+        return r;
+    }
+    setLocale(code: string) {
+        this.currLocale = this.getLocale(code);
+    }
+
+    getTex(name: string) {
+        const r = this._textures[name];
+        if (r === undefined) throw ReferenceError(`Cannot find texture ${name}`);
+        return r;
+    }
+    getSeq(name: string) {
+        const r = this._sequences[name];
+        if (r === undefined) throw ReferenceError(`Cannot find sequence ${name}`);
+        return r;
+    }
+    getSpine(name: string) {
+        const r = this._spines[name];
+        if (r === undefined) throw ReferenceError(`Cannot find spine ${name}`);
+        return r;
     }
 
     get DeltaMS() {

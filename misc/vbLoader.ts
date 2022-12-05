@@ -93,7 +93,7 @@ export function load_assets(loader: PIXI.Loader, assets: AssetList) {
 
 
 export function get_textureMap(loader: PIXI.Loader, assets: AssetList) {
-    let textureMap: { [key: string]: PIXI.Texture } = {};
+    let textureMap: { [name: string]: PIXI.Texture } = {};
     // get textures from each of the single image
     for (let filename of assets.img) {
         let filename_stripped = filename.split('/')[1];
@@ -128,7 +128,7 @@ export function get_multipack_sequenceMap(loader: PIXI.Loader, assets: AssetList
      * value: tuple, filename of a sequence frame and the corresponding texture \
      * keep the file name so they can be sorted
      */
-    let sequenceMap_tmp: { [key: string]: [string, PIXI.Texture][] } = {};
+    let sequenceMap_tmp: { [name: string]: [string, PIXI.Texture][] } = {};
     for (let filename of assets.anim_atlas) {
         let sheet = loader.resources[filename].spritesheet;
         if (sheet == undefined) continue;
@@ -148,7 +148,7 @@ export function get_multipack_sequenceMap(loader: PIXI.Loader, assets: AssetList
         }
     }
 
-    let sequenceMap: { [key: string]: PIXI.Texture[] } = {};
+    let sequenceMap: { [name: string]: PIXI.Texture[] } = {};
     for (let [key, value] of Object.entries(sequenceMap_tmp)) {
         // sort based on filename
         value.sort((a, b) => { return a[0].localeCompare(b[0]); });

@@ -27,7 +27,7 @@ type LocalizedDictionary = {
     [key: string]:
         string
         | string[]
-        | { [key: string]: string }
+        | { [subKey: string]: string }
 }
 
 

@@ -24,6 +24,9 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
 
     constructor(desiredWidth?: number, desiredHeight?: number) {
         super();
+        this._init(desiredWidth, desiredHeight);
+    }
+    protected _init(desiredWidth?: number, desiredHeight?: number) {
         this.sortableChildren = true;
         if (desiredWidth !== undefined && desiredHeight !== undefined) {
             this.setDesiredSize(desiredWidth, desiredHeight);
@@ -141,33 +144,6 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     }
 
     /**
-     * Will be called when it enters any state, recursively call all containers. \
-     * If there's no need for recursive call, the derived class don't have to call super.enterState.
-     */
-    enterState(stateName: string) {
-        for (let obj of this.children) {
-            let container = <vbContainer>obj;
-            if (container.desiredSize === undefined) continue;
-            if (!container.enable) continue;
-            
-            container.enterState(stateName);
-        }
-    }
-    /**
-     * Will be called when it exits any state, recursively call all containers. \
-     * If there's no need for recursive call, the derived class don't have to call super.exitState.
-     */
-    exitState(stateName: string) {
-        for (let obj of this.children) {
-            let container = <vbContainer>obj;
-            if (container.desiredSize === undefined) continue;
-            if (!container.enable) continue;
-            
-            container.exitState(stateName);
-        }
-    }
-
-    /**
      * Recursively apply style to all the children.
      */
     applyChildrenStyle(style: StyleList) {
@@ -229,6 +205,6 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
 
 
 /** Further use ??? */
-class vbBatchContainer extends vbGraphicObjectBase(PIXI.ParticleContainer) {
+class _vbBatchContainer extends vbGraphicObjectBase(PIXI.ParticleContainer) {
     
 }
