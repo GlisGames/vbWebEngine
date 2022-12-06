@@ -199,33 +199,51 @@ export class vbTimer extends PIXI.utils.EventEmitter {
         }
     }
 
-    /** Can add multiple callbacks */
+    /** Only keep one callback at a time */
     onStart(fn: (elapsedTime: number) => void) {
-        this.on('start', fn); return this;
+        return this.clearOnStart().on('start', fn);
     }
-    /** Can add multiple callbacks */
+    /** Only keep one callback at a time */
     onUpdate(fn: (elapsedTime: number, delta: number) => void) {
-        this.on('update', fn); return this;
+        return this.clearOnUpdate().on('update', fn);
     }
-    /** Can add multiple callbacks */
+    /** Only keep one callback at a time */
     onRepeat(fn: (elapsedTime: number, repeatCount: number) => void) {
-        this.on('repeat', fn); return this;
+        return this.clearOnRepeat().on('repeat', fn);
+    }
+    /** Only keep one callback at a time */
+    onEnd(fn: (elapsedTime: number) => void) {
+        return this.clearOnEnd().on('end', fn);
+    }
+
+    /** Can add multiple callbacks */
+    addOnStart(fn: (elapsedTime: number) => void) {
+        return this.on('start', fn);
     }
     /** Can add multiple callbacks */
-    onEnd(fn: (elapsedTime: number) => void) {
-        this.on('end', fn); return this;
+    addOnUpdate(fn: (elapsedTime: number, delta: number) => void) {
+        return this.on('update', fn);
     }
+    /** Can add multiple callbacks */
+    addOnRepeat(fn: (elapsedTime: number, repeatCount: number) => void) {
+        return this.on('repeat', fn);
+    }
+    /** Can add multiple callbacks */
+    addOnEnd(fn: (elapsedTime: number) => void) {
+        return this.on('end', fn);
+    }
+
     clearOnStart(fn?: (elapsedTime: number) => void) {
-        this.off('start', fn); return this;
+        return this.off('start', fn);
     }
     clearOnUpdate(fn?: (elapsedTime: number, delta: number) => void) {
-        this.off('update', fn); return this;
+        return this.off('update', fn);
     }
     clearOnRepeat(fn?: (elapsedTime: number, repeatCount: number) => void) {
-        this.off('repeat', fn); return this;
+        return this.off('repeat', fn);
     }
     clearOnEnd(fn?: (elapsedTime: number) => void) {
-        this.off('end', fn); return this;
+        return this.off('end', fn);
     }
 }
 

@@ -6,6 +6,7 @@ type UnknownProps = Record<string, any>;
 
 export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
     protected _onCompleteCallbacks: ((object: T) => void)[] = [];
+    protected _enableMultiCallbacks = false;
     name: string;
 
     constructor(name: string, obj: T, group: TWEEN.Group) {
@@ -36,15 +37,35 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
 
     /**
      * A frequent usage scenario is that multiple entities want to add each of their on complete callback
-     * to a single tween. So we override the original function to support multiple callbacks.
+     * to a single tween. So this method enables support for multiple callbacks.
      */
-    onComplete(callback: (object: T) => void) {
+    addOnComplete(callback: (object: T) => void) {
+        if (!this._enableMultiCallbacks) {
+            this._enableMultiCallbacks = true;
+            super.onComplete((object: T) => {
+                for (const callback of this._onCompleteCallbacks) {
+                    callback(object);
+                }
+            });
+        }
         this._onCompleteCallbacks.push(callback);
         return this;
     }
-
-    clearOnComplete() {
+    /**
+     * Clear onComplete callbacks added via `addOnComplete`
+     */
+    clearMultiOnComplete() {
         this._onCompleteCallbacks.clear();
+        return this;
+    }
+    /**
+     * This method will only keep one callback at a time
+     */
+    onComplete(callback: (object: T) => void) {
+        if (this._enableMultiCallbacks) {
+            this._enableMultiCallbacks = false;
+        }
+        return super.onComplete(callback);
     }
 
     update(time: number, autoStart: boolean) {
@@ -60,6 +81,7 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
     reset() {
         let thisany = <any>this;
         thisany._startTime = globalThis.pgame.TotalMS + thisany._delayTime;
+        return this;
     }
 
     /**
