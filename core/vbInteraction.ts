@@ -22,6 +22,7 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
     return class InteractiveObject extends Other {
         interactive = true;
         isPointerDown = false;
+        isPointerOver = false;
         protected _defaultColorFilter?: ColorOverlayFilter;
         /**
          * Stored event names and their listener callbacks. \
@@ -82,7 +83,7 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
          * Use default color overlay effect when the pointer hovers over it. (Ignore on mobile devices) \
          * Use `pointerover` and `pointerout` events.
          * 
-         * @param [filter] Use this one if specified. Otherwise
+         * @param [filter] Use this one if specified. Otherwise construct and assign to its own property.
          */
         defaultHoverEffect(color: number, alpha: number, filter?: ColorOverlayFilter) {
             if (isMobile()) {
@@ -91,12 +92,14 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
             if (filter === undefined) {
                 if (this._defaultColorFilter === undefined)
                     this._defaultColorFilter = new ColorOverlayFilter();
-                filter = this._defaultColorFilter;
             }
-            const _filter = filter;
+            else
+                this._defaultColorFilter = filter;
+            const _filter = this._defaultColorFilter;
             const pointeroverFn = (e: PIXI.InteractionEvent) => {
+                this.isPointerOver = true;
                 if (this.isPointerDown) {
-                    let pointerdown_fn = this.getListenerFn('pointerdown');
+                    const pointerdown_fn = this.getListenerFn('pointerdown');
                     if (pointerdown_fn !== undefined) pointerdown_fn(e);
                     return;
                 }
@@ -106,6 +109,7 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
                     this.addFilter(_filter);
             };
             const pointeroutFn = () => {
+                this.isPointerOver = false;
                 this.filters?.removeOnce(_filter);
             }
             return this.pointer('over', pointeroverFn)
@@ -121,14 +125,17 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
         /**
          * Use default color overlay effect when the pointer clicks on it. \
          * Use `pointerdown`, `pointerup` and `pointerupoutside` events.
+         * 
+         * @param [filter] Use this one if specified. Otherwise construct and assign to its own property.
          */
         defaultClickEffect(color: number, alpha: number, filter?: ColorOverlayFilter) {
             if (filter === undefined) {
                 if (this._defaultColorFilter === undefined)
                     this._defaultColorFilter = new ColorOverlayFilter();
-                filter = this._defaultColorFilter;
             }
-            const _filter = filter;
+            else
+                this._defaultColorFilter = filter;
+            const _filter = this._defaultColorFilter;
             const pointerdownFn = () => {
                 this.isPointerDown = true;
                 _filter.color = color;
@@ -142,13 +149,23 @@ export function vbInteractiveObjectBase<TOther extends TypeCons<vbGraphicObject>
             }
             return this.pointer('down', pointerdownFn)
                        .pointer('up', pointerupFn)
-                       .pointer('upoutside', pointerupFn);            
+                       .pointer('upoutside', pointerupFn);
         }
         /**
          * Turn the hover effect on or off after you set it.
          */
         setClickEffect(on: boolean) {
             return this.pointer('down', on).pointer('up', on).pointer('upoutside', on);
+        }
+
+        /**
+         * It's is primarily used for clearing default hover effect.
+         */
+        clearEffect() {
+            if (this.isPointerOver && this._defaultColorFilter !== undefined) {
+                this.isPointerOver = false;
+                this.filters?.removeOnce(this._defaultColorFilter);
+            }
         }
     }
 }

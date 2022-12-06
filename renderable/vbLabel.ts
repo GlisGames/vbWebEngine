@@ -38,7 +38,7 @@ import type { vbTextInitOptions } from './vbText';
      * Add a default style text object at the center of graphic object `bg`. \
      * Set vbLabel object's name by text's name.
      */
-    addDefaultText(options: vbTextInitOptions) {
+    addDefaultTxt(options: vbTextInitOptions) {
         this.txt = new vbText(options);
         this.txt.layer = 1;
         this.txt.pivotRule = PivotPoint.Center;
@@ -48,7 +48,7 @@ import type { vbTextInitOptions } from './vbText';
         this.name = this.txt.name;
     }
 
-    addTextObj(obj: vbText) {
+    addTxtObj(obj: vbText) {
         if (this.txt !== undefined) {
             this.removeChild(this.txt);
             this.txt.destroy();
@@ -59,15 +59,15 @@ import type { vbTextInitOptions } from './vbText';
         this.name = this.txt.name;
     }
 
-    setText(s: string) {
+    setTxt(s: string) {
         this.txt.text = s;
     }
 
-    setTextStyle(style: Partial<PIXI.ITextStyle>) {
-        this.txt.style = style;
+    setTxtStyle(style: Partial<PIXI.ITextStyle>) {
+        Object.assign(this.txt.style, style);
     }
 
-    setTextKey(key: string) {
+    setTxtKey(key: string) {
         this.txt.setKey(key);
     }
 
