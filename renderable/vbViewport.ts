@@ -1,11 +1,11 @@
 import * as PIXI from 'pixi.js';
-import { vbContainer } from '@vb/vbContainer';
-import { vbGraphicObjectBase, type vbGraphicObject } from '@vb/vbGraphicObject';
-import { vbPrimitive, vbRectangle } from './vbPrimitive';
-import { Viewport } from 'pixi-viewport';
-import type { vbImage } from './vbImage';
-import type { StyleList } from '@vb/core/vbStyle';
 import type { LocalizationTable } from '@vb/core/vbLocalization';
+import type { StyleList } from '@vb/core/vbStyle';
+import { Viewport } from 'pixi-viewport';
+import { vbContainer } from '@vb/vbContainer';
+import { type vbGraphicObject, vbGraphicObjectBase } from '@vb/vbGraphicObject';
+import type { vbImage } from './vbImage';
+import { vbPrimitive, vbRectangle } from './vbPrimitive';
 
 
 class _vbInteractiveViewport extends vbGraphicObjectBase(Viewport) {
