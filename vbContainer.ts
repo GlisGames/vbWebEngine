@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import type { ContainerStyleItem, StyleList } from './core/vbStyle';
 import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
-import { PivotPoint, type Pos2, setPivotRule } from './core/vbTransform';
+import { PivotPoint, type Pos2, setPivotRule, type Size2 } from './core/vbTransform';
 import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
@@ -19,8 +19,11 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     static readonly maxLayer = 9999;
 
     tweens = new vbTweenMap();
-    /** @note [Can be used for type check] */
-    desiredSize: Pos2 = { x:0, y:0 };
+    /**
+     * Desired size
+     * @note [Can be used for type check]
+     */
+    desz: Size2 = { width:0, height:0 };
 
     constructor(desiredWidth?: number, desiredHeight?: number) {
         super();
@@ -39,18 +42,18 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
      */
     setDesiredSize(width?: number, height?: number) {
         if (width === undefined || height === undefined) {
-            this.desiredSize.x = this.width;
-            this.desiredSize.y = this.height;
+            this.desz.width = this.width;
+            this.desz.height = this.height;
         }
         else {
-            this.desiredSize.x = width;
-            this.desiredSize.y = height;
+            this.desz.width = width;
+            this.desz.height = height;
         }
-        setPivotRule(this, this._pivotRule, this.desiredSize.x, this.desiredSize.y);
+        setPivotRule(this, this._pivotRule, this.desz.width, this.desz.height);
         // If there's a debugBox, redraw with new size
         if (this._debugBox !== undefined) {
             this._debugBox.clear();
-            let rect = new PIXI.Rectangle(0, 0, this.desiredSize.x, this.desiredSize.y);
+            let rect = new PIXI.Rectangle(0, 0, this.desz.width, this.desz.height);
             let fillStyle = (<any>this.constructor)._debugFillStyle;
             let lineStyle = (<any>this.constructor)._debugLineStyle;
             this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);
@@ -60,7 +63,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     get pivotRule() { return this._pivotRule; }
     set pivotRule(rule: PivotPoint) {
         this._pivotRule = rule;
-        setPivotRule(this, rule, this.desiredSize.x, this.desiredSize.y);
+        setPivotRule(this, rule, this.desz.width, this.desz.height);
     }
 
     addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
@@ -91,7 +94,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
             locObj.localize(table, table.styles[locObj.name]);
         // try to apply recursively
         let container = <vbContainer>vbObj;
-        if (container.desiredSize !== undefined) {
+        if (container.desz !== undefined) {
             container.applyChildrenStyle(style);
             container.localizeChildren(table);
         }
@@ -156,7 +159,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
                 vbObj.applyStyle(style[vbObj.name]);
 
             let container = <vbContainer>obj;
-            if (container.desiredSize === undefined) continue;
+            if (container.desz === undefined) continue;
             container.applyChildrenStyle(style);
         }
     }
@@ -171,7 +174,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
                 locObj.localize(table, table.styles[locObj.name]);
 
             let container = <vbContainer>obj;
-            if (container.desiredSize === undefined) continue;
+            if (container.desz === undefined) continue;
             container.localizeChildren(table);
         }
     }
@@ -179,8 +182,8 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     applyStyle(item: ContainerStyleItem) {
         super.applyStyle(item);
         if (item.dwh !== undefined) {
-            this.desiredSize.x = item.dwh[0];
-            this.desiredSize.y = item.dwh[1];
+            this.desz.width = item.dwh[0];
+            this.desz.height = item.dwh[1];
             this.setDesiredSize();
         }
     }
@@ -199,7 +202,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         return (this._debugBox !== undefined) && (this._debugBox.visible);
     }
     set debugBox(enable: boolean) {
-        this._showDebugBox(enable, this.desiredSize.x, this.desiredSize.y);
+        this._showDebugBox(enable, this.desz.width, this.desz.height);
     }
 }
 

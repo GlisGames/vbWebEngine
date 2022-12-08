@@ -99,11 +99,11 @@ export abstract class vbGame extends PIXI.Application {
     startLoop() {
         this.mainLoop = this.mainLoop.bind(this);
         if (!DEV || (this.ticker.count < 2)) {
-            // for some reasons, when vite hot reload the vue setup script,
+            // for some reasons, vite's module hot reload doesn't work well on pixi,
             // it may cause the ticker weirdly add more and more mainLoop callbacks
             // without initializing everything from empty.
             // this check is used for preventing redundant callbacks.
-            this.ticker.add(this.mainLoop);
+            this.ticker.add(this.mainLoop, {}, PIXI.UPDATE_PRIORITY.HIGH);
         }
     }
 

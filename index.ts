@@ -27,7 +27,7 @@ export {
 
 
 export { vbSpineObject } from './renderable/vbSpineObject';
-export { vbViewport } from './renderable/vbViewport';
+export { vbInteractiveViewport, vbSimpleViewport } from './renderable/vbViewport';
 export { vbImage, vbSequence } from './renderable/vbImage';
 export { vbPopMessage } from './renderable/vbDemoItems';
 

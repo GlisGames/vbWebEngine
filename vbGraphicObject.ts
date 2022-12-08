@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { PivotPoint, setPivotRule, setSpritePivotRule } from './core/vbTransform';
 import type { StyleItem } from './core/vbStyle';
-import { c } from './misc/vbShared';
+import { c, m } from './misc/vbShared';
 import type { vbContainer } from './vbContainer';
 
 
@@ -71,6 +71,15 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
          */
         setCustomPivot(x: number, y: number) {
             this.pivot.set(x, y);
+        }
+
+        /**
+         * Rotation in radian, and fit the range [0, 2pi)
+         */
+        get radian() { return this.rotation; }
+        set radian(value: number) {
+            this.rotation = value % m.pi2;
+            if (this.rotation < 0) this.rotation += m.pi2;
         }
 
         /**
