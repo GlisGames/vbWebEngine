@@ -5,17 +5,24 @@
 
 
 export * from './vbUtils';
+export * from './vbNumberFormat';
 
-
-export type { StyleItem, StyleList, StyleTable } from '@vb/core/vbStyle';
+export type { Pos2, Size2 } from '@vb/core/vbTransform';
 export type { AssetList } from './vbLoader';
-export type { ImageStyleItem } from '@vb/renderable/vbImage';
 export type { SpineData } from '@vb/renderable/vbSpineObject';
 export type {
+    StyleItem,
+    StyleList,
+    StyleTable,
+    ContainerStyleItem,
+    ImageStyleItem
+} from '@vb/core/vbStyle';
+export type {
     TextStyleItem,
-    LocalizedStyleList,
-    LocalizedDictionary,
     StylesTextureMap,
-    LocalizedTextureMap,
     LocalizationTable
 } from '@vb/core/vbLocalization';
+export type { InteractionFn } from '@vb/core/vbInteraction';
+export { shared } from './vbShared';
+
+export * from './WebUtils';

@@ -1,9 +1,8 @@
 import * as PIXI from 'pixi.js';
-import { Container, ParticleContainer } from 'pixi.js';
+import type { ContainerStyleItem, StyleList } from './core/vbStyle';
 import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
-import { PivotPoint, setPivotRule } from './core/vbTransform';
-import type { StyleItem, StyleList } from './core/vbStyle';
-import { c } from './misc/vbPreset';
+import { PivotPoint, type Size2, setPivotRule } from './core/vbTransform';
+import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
 import { vbTweenMap } from './vbTween';
@@ -13,18 +12,24 @@ import { vbTweenMap } from './vbTween';
  * As is discussed at @see vbGraphicObject.debugBox, `width` and `height` can be dynamically changed, \
  * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
-export class vbContainer extends vbGraphicObjectBase(Container) {
+export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     /** "Send to Back" layer */
     static readonly minLayer = -9999;
     /** "Bring to Front" layer */
     static readonly maxLayer = 9999;
 
     tweens = new vbTweenMap();
-    /** @note [Can be used for type check] */
-    desiredSize = new PIXI.Point();
+    /**
+     * Desired size
+     * @note [Can be used for type check]
+     */
+    desz: Size2 = { width:0, height:0 };
 
     constructor(desiredWidth?: number, desiredHeight?: number) {
         super();
+        this._init(desiredWidth, desiredHeight);
+    }
+    protected _init(desiredWidth?: number, desiredHeight?: number) {
         this.sortableChildren = true;
         if (desiredWidth !== undefined && desiredHeight !== undefined) {
             this.setDesiredSize(desiredWidth, desiredHeight);
@@ -37,17 +42,18 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
      */
     setDesiredSize(width?: number, height?: number) {
         if (width === undefined || height === undefined) {
-            this.desiredSize.x = this.width;
-            this.desiredSize.y = this.height;
+            this.desz.width = this.width;
+            this.desz.height = this.height;
         }
         else {
-            this.desiredSize.x = width;
-            this.desiredSize.y = height;
+            this.desz.width = width;
+            this.desz.height = height;
         }
+        setPivotRule(this, this._pivotRule, this.desz.width, this.desz.height);
         // If there's a debugBox, redraw with new size
         if (this._debugBox !== undefined) {
             this._debugBox.clear();
-            let rect = new PIXI.Rectangle(0, 0, this.desiredSize.x, this.desiredSize.y);
+            let rect = new PIXI.Rectangle(0, 0, this.desz.width, this.desz.height);
             let fillStyle = (<any>this.constructor)._debugFillStyle;
             let lineStyle = (<any>this.constructor)._debugLineStyle;
             this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);
@@ -57,7 +63,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
     get pivotRule() { return this._pivotRule; }
     set pivotRule(rule: PivotPoint) {
         this._pivotRule = rule;
-        setPivotRule(this, rule, this.desiredSize.x, this.desiredSize.y);
+        setPivotRule(this, rule, this.desz.width, this.desz.height);
     }
 
     addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
@@ -85,10 +91,10 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
         // try to localize
         let locObj = <vbLocalizedObject>vbObj;
         if (locObj.localize !== undefined)
-            locObj.localize(table.dict, table.textures, table.styles[locObj.name]);
+            locObj.localize(table, table.styles[locObj.name]);
         // try to apply recursively
         let container = <vbContainer>vbObj;
-        if (container.desiredSize !== undefined) {
+        if (container.desz !== undefined) {
             container.applyChildrenStyle(style);
             container.localizeChildren(table);
         }
@@ -131,30 +137,13 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
     }
 
     /**
-     * Will be called when it enters any state, recursively call all containers. \
-     * If there's no need for recursive call, the derived class don't have to call super.enterState.
+     * Check if an interaction event happens inside this container.
+     * Use `localBounds` to match the point.
      */
-    enterState(stateName: string) {
-        for (let obj of this.children) {
-            let container = <vbContainer>obj;
-            if (container.desiredSize === undefined) continue;
-            if (!container.enable) continue;
-            
-            container.enterState(stateName);
-        }
-    }
-    /**
-     * Will be called when it exits any state, recursively call all containers. \
-     * If there's no need for recursive call, the derived class don't have to call super.exitState.
-     */
-    exitState(stateName: string) {
-        for (let obj of this.children) {
-            let container = <vbContainer>obj;
-            if (container.desiredSize === undefined) continue;
-            if (!container.enable) continue;
-            
-            container.exitState(stateName);
-        }
+    containsInteraction(e: PIXI.InteractionEvent) {
+        let p = e.data.getLocalPosition(this);
+        let rect = this.getLocalBounds(undefined, true);
+        return rect.contains(p.x, p.y);
     }
 
     /**
@@ -170,7 +159,7 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
                 vbObj.applyStyle(style[vbObj.name]);
 
             let container = <vbContainer>obj;
-            if (container.desiredSize === undefined) continue;
+            if (container.desz === undefined) continue;
             container.applyChildrenStyle(style);
         }
     }
@@ -180,31 +169,21 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
      */
     localizeChildren(table: LocalizationTable) {
         for (let obj of this.children) {
-            let container = <vbContainer>obj;
-            if (container.desiredSize !== undefined) {
-                container.localizeChildren(table);
-            }
-            else {
-                let locObj = <vbLocalizedObject>obj;
-                if (locObj.localize === undefined) continue;
+            let locObj = <vbLocalizedObject>obj;
+            if (locObj.localize !== undefined)
+                locObj.localize(table, table.styles[locObj.name]);
 
-                let item = table.styles[locObj.name];
-                locObj.localize(table.dict, table.textures, item);
-            }
+            let container = <vbContainer>obj;
+            if (container.desz === undefined) continue;
+            container.localizeChildren(table);
         }
     }
 
-    applyStyle(item: StyleItem) {
-        if (item.xy !== undefined) {
-            this.x = item.xy[0];
-            this.y = item.xy[1];
-        }
-        if (item.s !== undefined) {
-            this.scale.set(item.s);
-        }
-        if (item.wh !== undefined) {
-            this.desiredSize.x = item.wh[0];
-            this.desiredSize.y = item.wh[1];
+    applyStyle(item: ContainerStyleItem) {
+        super.applyStyle(item);
+        if (item.dwh !== undefined) {
+            this.desz.width = item.dwh[0];
+            this.desz.height = item.dwh[1];
             this.setDesiredSize();
         }
     }
@@ -220,15 +199,15 @@ export class vbContainer extends vbGraphicObjectBase(Container) {
      * Show a debug rectangle with desiredSize
      */
     get debugBox() {
-        return (this._debugBox !== undefined) && (this._debugBox.renderable);
+        return (this._debugBox !== undefined) && (this._debugBox.visible);
     }
     set debugBox(enable: boolean) {
-        this._showDebugBox(enable, this.desiredSize.x, this.desiredSize.y);
+        this._showDebugBox(enable, this.desz.width, this.desz.height);
     }
 }
 
 
 /** Further use ??? */
-class vbBatchContainer extends vbGraphicObjectBase(ParticleContainer) {
+class _vbBatchContainer extends vbGraphicObjectBase(PIXI.ParticleContainer) {
     
 }

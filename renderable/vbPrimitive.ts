@@ -1,28 +1,28 @@
 import * as PIXI from 'pixi.js';
-import { c } from '@vb/misc/vbPreset';
+import { c } from '@vb/misc/vbShared';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
 
 /** The shape data to be passed to vbPrimitive */
 export abstract class vbShape {
     shape = {} as PIXI.IShape;
-    fillStyle = new PIXI.FillStyle();
-    lineStyle = new PIXI.LineStyle();
+    _fillStyle = new PIXI.FillStyle();
+    _lineStyle = new PIXI.LineStyle();
     matrix?: PIXI.Matrix;
 
     fill(color: number, alpha = 1) {
-        this.fillStyle.color = color;
-        this.fillStyle.alpha = alpha;
-        this.fillStyle.visible = true;
+        this._fillStyle.color = color;
+        this._fillStyle.alpha = alpha;
+        this._fillStyle.visible = true;
         return this;
     }
 
     line(width: number, color: number, alpha = 1) {
-        this.lineStyle.width = width;
-        this.lineStyle.color = color;
-        this.lineStyle.alpha = alpha;
+        this._lineStyle.width = width;
+        this._lineStyle.color = color;
+        this._lineStyle.alpha = alpha;
         // this.lineStyle.cap = PIXI.LINE_CAP.ROUND;
-        this.lineStyle.visible = true;
+        this._lineStyle.visible = true;
         return this;
     }
 }
@@ -95,11 +95,11 @@ export class vbPrimitive extends vbGraphicObjectBase(PIXI.Graphics) {
      */
     appendDraw(shapeData: vbShape | vbShape[]) {
         if (shapeData instanceof vbShape) {
-            this.geometry.drawShape(shapeData.shape, shapeData.fillStyle, shapeData.lineStyle, shapeData.matrix);
+            this.geometry.drawShape(shapeData.shape, shapeData._fillStyle, shapeData._lineStyle, shapeData.matrix);
         }
         else if (Array.isArray(shapeData)) {
             for (let s of shapeData) {
-                this.geometry.drawShape(s.shape, s.fillStyle, s.lineStyle, s.matrix);
+                this.geometry.drawShape(s.shape, s._fillStyle, s._lineStyle, s.matrix);
             }
         }
     }

@@ -9,18 +9,27 @@ export type TextStyleItem = {
     /** font size */
     size?: number
     /** (maybe) right align for Arabic?  */
-    align?: PIXI.TextStyleAlign
+    align?: PIXI.TextStyleAlign,
+    /** (maybe) break words for CJK language? */
+    break?: boolean
 }
 
 /** Each name of vbLocalizedObject maps a text style item */
-export type LocalizedStyleList = {
+type TextStyleList = {
     [name: string]: TextStyleItem
 }
 
-/** Each key name maps a text string */
-export type LocalizedDictionary = {
-    [key: string]: string
+/**
+ * Each key name maps a text string. \
+ * But sometimes it may need a list, or even a map.
+ */
+type LocalizedDictionary = {
+    [key: string]:
+        string
+        | string[]
+        | { [subKey: string]: string }
 }
+
 
 /**
  * For localized image, each key name maps a texture,
@@ -31,7 +40,7 @@ export type StylesTextureMap = {
 }
 
 /** Each key name maps a (or more) texture name */
-export type LocalizedTextureMap = {
+type LocalizedTextureMap = {
     [key: string]: string | StylesTextureMap
 }
 
@@ -45,7 +54,7 @@ export type LocalizationTable = {
 
     dict: LocalizedDictionary,
     textures: LocalizedTextureMap,
-    styles: LocalizedStyleList
+    styles: TextStyleList
 }
 
 export interface vbLocalizedObject extends vbGraphicObject {
@@ -53,9 +62,8 @@ export interface vbLocalizedObject extends vbGraphicObject {
      * Apply localization with a given item.
      * @note [Can be used for type check]
      * 
-     * @param [dict] Dictionary from current localization table
-     * @param [textures] Texture map from current localization table
+     * @param [table] current localization table
      * @param [item] Only vbText has this?
      */
-    localize(dict: LocalizedDictionary, textures: LocalizedTextureMap, item?: TextStyleItem): void;
+    localize(table: LocalizationTable, item?: TextStyleItem): void;
 } 

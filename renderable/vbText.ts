@@ -1,9 +1,7 @@
 /** https://pixijs.io/pixi-text-style/# */
 import * as PIXI from 'pixi.js';
-import type { LocalizedDictionary, LocalizedTextureMap, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
-import { PivotPoint, setPivotRule } from '@vb/core/vbTransform';
-import { c } from '@vb/misc/vbPreset';
-import type { vbGraphicObject } from '@vb/vbGraphicObject';
+import type { LocalizationTable, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
+import { c } from '@vb/misc/vbShared';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
 
@@ -26,8 +24,11 @@ export type vbTextInitOptions = {
     weight?: PIXI.TextStyleFontWeight,
     /** font style */
     style?: PIXI.TextStyleFontStyle,
-    /** If it's specified, also set `wordWrap` and `breakWords` to true */
-    wordWrapWidth?: number,
+    /** word wrap width (it's not the concept of "bounding box") */
+    width?: number,
+    breakWords?: boolean,
+    /** align only makes sense when there're multiple lines */
+    align?: PIXI.TextStyleAlign,
     /** stroke (outline) color */
     stroke?: number,
     /** stroke (outline) thickness */
@@ -79,132 +80,84 @@ export type vbTextInitOptions = {
         if (item !== undefined) {
             style.fontFamily = item.font;
             style.fontSize = item.size;
-            if (item.align !== undefined) style.align = item.align;
+            style.align = item.align;
+            style.breakWords = item.break;
         }
-        if (options.font !== undefined) style.fontFamily = options.font;
-        if (options.size !== undefined) style.fontSize = options.size;
-        if (options.weight !== undefined) style.fontWeight = options.weight;
-        if (options.style !== undefined) style.fontStyle = options.style;
-        if (options.stroke !== undefined) style.stroke = options.stroke;
-        if (options.strokeWidth !== undefined) style.strokeThickness = options.strokeWidth;
+        
+        style.fontFamily = options.font;
+        style.fontSize = options.size;
+        style.fontWeight = options.weight;
+        style.fontStyle = options.style;
+        style.breakWords = options.breakWords;
+        style.align = options.align;
+        style.stroke = options.stroke;
+        style.strokeThickness = options.strokeWidth;
 
         if (options.color !== undefined) style.fill = options.color;
         else if (style.fill === undefined) style.fill = c.White;
 
-        if (options.wordWrapWidth !== undefined) {
+        if (options.width !== undefined) {
             style.wordWrap = true;
-            style.breakWords = true;
-            style.wordWrapWidth = options.wordWrapWidth;
+            style.wordWrapWidth = options.width;
         }
+        Object.removeUndef(style);
         return style;
     }
 
+    static getLocalizedStyle(txt: vbText, item: TextStyleItem) {
+        let style: Partial<PIXI.ITextStyle> = {};
+
+        if (item.font !== undefined)
+            style.fontFamily = item.font;
+        else if (txt._useDefaultFont)
+            style.fontFamily = globalThis.pgame.currLocale.defaultFont;
+        style.fontSize = item.size;
+        style.align = item.align;
+        style.breakWords = item.break;
+        Object.removeUndef(style);
+        return style;
+    }
+
+    /**
+     * Set text using a key in localization table. (It assumes the item is a string, not an array or map)
+     */
     setKey(key: string) {
         this._key = key;
-        let text = globalThis.pgame.currLocale.dict[key];
+        let text = <string>globalThis.pgame.currLocale.dict[key];
         if (text !== undefined)
             this.text = text;
     }
 
     /**
+     * Set text using a key in localization table. (It assumes the item is a string, not an array or map) \
      * Format {0}, {1}, ... to arguments.
      */
     setKeyFormat(key: string, ...args: (string | number)[]) {
         this._key = key;
-        let formatText = globalThis.pgame.currLocale.dict[key];
-        if (formatText !== undefined) {
-            let replaceMap: { [from: string]: string | number} = {};
-            for (let i = 0; i < args.length; i++) {
-                replaceMap[`{${i}}`] = args[i];
-            }
-            this.text = formatText.mapReplace(replaceMap);
+        let fmtText = <string>globalThis.pgame.currLocale.dict[key];
+        if (fmtText !== undefined) {
+            this.text = vbText.format(fmtText, ...args);
         }
     }
 
-    localize(dict: LocalizedDictionary, textures: LocalizedTextureMap, item?: TextStyleItem) {
-        let text = dict[this._key];
+    static format(fmt: string, ...args: (string | number)[]) {
+        let replaceMap: { [from: string]: string | number} = {};
+        for (let i = 0; i < args.length; i++) {
+            replaceMap[`{${i}}`] = args[i];
+        }
+        return fmt.mapReplace(replaceMap);
+    }
+
+    localize(table: LocalizationTable, item?: TextStyleItem) {
+        let text = <string>table.dict[this._key];
         if (text !== undefined)
             this.text = text;
 
         if (item === undefined) return;
-        if (item.font !== undefined)
-            this.style.fontFamily = item.font;
-        else if (this._useDefaultFont)
-            this.style.fontFamily = globalThis.pgame.currLocale.defaultFont;
-
-        if (item.size !== undefined)
-            this.style.fontSize = item.size;
-        if (item.align !== undefined) 
-            this.style.align = item.align;
-    }
-}
-
-
-/**
- * Label is based on an GraphicObject (preferably image or primitive?) with optional text, \
- * its localization support may change both the graphic object and the text. \
- * NOTE: The names of vbLabel object and its `txt` member variable should be the same
- * in order to properly get the localization.
- */
-export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLocalizedObject {
-    bg: T;
-    txt?: vbText;
-
-    constructor(bg: T) {
-        super();
-        this.bg = bg;
-        this.bg.pivotRule = PivotPoint.Center;
-        this.addChild(bg);
+        Object.assign(this.style, vbText.getLocalizedStyle(this, item));
     }
 
-    get pivotRule() { return this._pivotRule; }
-    set pivotRule(rule: PivotPoint) {
-        this._pivotRule = rule;
-        setPivotRule(this, rule, this.bg.width, this.bg.height);
-    }
-
-    /**
-     * Add a default style text object at the center of graphic object `bg`. \
-     * Set vbLabel object's name by text's name.
-     */
-    addDefaultText(options: vbTextInitOptions) {
-        this.txt = new vbText(options);
-        this.txt.pivotRule = PivotPoint.Center;
-        // this.txt.position.set(this.bg.width/2, this.bg.height/2);
-        this.addChild(this.txt);
-        // sync name
-        this.name = this.txt.name;
-    }
-
-    addTextObj(obj: vbText) {
-        if (this.txt !== undefined) {
-            this.removeChild(this.txt);
-            this.txt.destroy();
-        }
-        this.txt = obj;
-        this.addChild(this.txt);
-        // sync name
-        this.name = this.txt.name;
-    }
-
-    setText(s: string) {
-        if (this.txt !== undefined) this.txt.text = s;
-    }
-
-    setTextStyle(style: Partial<PIXI.ITextStyle>) {
-        if (this.txt !== undefined) this.txt.style = style;
-    }
-
-    setTextKey(key: string) {
-        this.txt?.setKey(key);
-    }
-
-    update(deltaFrame: number) {
-        this.bg.update(deltaFrame);
-        this.txt?.update(deltaFrame);
-    }
-
-    localize(dict: LocalizedDictionary, textures: LocalizedTextureMap, item?: TextStyleItem) {
-        this.txt?.localize(dict, textures, item);
+    clear() {
+        this.text = '';
     }
 }

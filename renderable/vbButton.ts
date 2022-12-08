@@ -1,15 +1,18 @@
 import type { vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbImage } from '@vb/renderable/vbImage';
-import { vbInteractiveObjectBase } from '@vb/core/vbInteractive';
-import { vbLabel } from './vbText';
+import { vbImageLabel, vbLabel, vbPrimiLabel } from './vbLabel';
+import { vbInteractiveObjectBase } from '@vb/core/vbInteraction';
 import { vbPrimitive } from './vbPrimitive';
 
 
-const _vbImageButton = vbInteractiveObjectBase(vbImage);
-export class vbImageButton extends _vbImageButton {}
+export class vbImageButton extends vbInteractiveObjectBase(vbImage) {}
 
-const _vbPrimitiveButton = vbInteractiveObjectBase(vbPrimitive);
-export class vbPrimitiveButton extends _vbPrimitiveButton {}
+export class vbImageLabelButton extends vbInteractiveObjectBase(vbImageLabel) {}
+
+export class vbPrimiButton extends vbInteractiveObjectBase(vbPrimitive) {}
+
+export class vbPrimiLabelButton extends vbInteractiveObjectBase(vbPrimiLabel) {}
+
 
 /**
  * Basically it's an interactive vbLabel. 

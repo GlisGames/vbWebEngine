@@ -1,5 +1,5 @@
 /** Here to put some simple objects used for demo purpose, like a message box...  */
-import { c } from '@vb/misc/vbPreset';
+import { c } from '@vb/misc/vbShared';
 import { vbButton } from './vbButton';
 import { vbPrimitive, vbShape } from './vbPrimitive';
 import { vbText } from './vbText';
@@ -23,33 +23,34 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
     constructor(shape: vbShape, txtOptions: vbTextInitOptions, tweens: vbTweenMap) {
         super(new vbPrimitive(shape));
         this.fadeTween = tweens.create('fade', this, {alpha: 0});
-        this.addDefaultText(txtOptions);
+        this.addDefaultTxt(txtOptions);
         // disable at start
-        this.enable = false;
+        this.displayed = false;
         // set callback
         this.fadeTween.onStart((obj: this) => {
             this.onStartFadingFn(obj);
         })
         .onComplete((obj: this) => {
-            this.enable = false;
+            this.displayed = false;
             this.onFadeEndFn(obj);
         });
     }
 
-    get enable() { return this._enable; }
-    set enable(en: boolean) {
-        // set everything
-        this._enable = this.renderable = this.interactive = en;
+    get displayed() { return this.visible; }
+    set displayed(en: boolean) {
+        this.visible = this.interactive = this.interactiveChildren = en;
     }
 
     /**
-     * Pop up the message
+     * Pop up the message.
+     * (Won't do anything if it's not enabled)
      * 
      * @param [displayTime]
      * @param [fadeTime] 
      */
     pop(displayTime: number, fadeTime: number) {
-        this.enable = true;
+        if (!this.enable) return;
+        this.displayed = true;
         this.alpha = 1;
         this.fadeTween.delay(displayTime).duration(fadeTime).restart();
     }

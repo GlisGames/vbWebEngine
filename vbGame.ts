@@ -5,8 +5,11 @@ import type { LocalizationTable } from './core/vbLocalization';
 import type { STYPE } from '@g/states/StateTypes';
 import type { SpineData } from './renderable/vbSpineObject';
 import type { StyleTable } from './core/vbStyle';
+import { c, shared } from './misc/vbShared';
 import { get_SpineMap, get_localeMap, get_multipack_sequenceMap, get_styleMap, get_textureMap, load_assets, load_json } from './misc/vbLoader'
 import { vbContainer } from './vbContainer';
+import { vbInteractionManager } from './core/vbInteraction';
+import { vbPrimitive, vbRectangle } from './renderable/vbPrimitive';
 import { vbSoundManager, vbSoundManagerInstance } from './misc/vbSound';
 import type { vbState } from './core/vbState';
 import { vbTimer, vbTimerManager } from './vbTimer';
@@ -23,15 +26,13 @@ type LocaleMap = { [code: string]: LocalizationTable };
  * managing all the assets, states, etc...
  */
 export abstract class vbGame extends PIXI.Application {
-    stage = (() => {
-        let stage = new vbContainer();
-        stage.name = 'MainStage';
-        // set the whole screen interactive so it can be clicked
-        stage.interactive = true;
-        return stage;
-    })();
+    stage = new vbContainer();
+    /** an invisible rectangle used for interaction */
+    protected _bgRect: vbPrimitive;
 
     timers = new vbTimerManager();
+    interaction: vbInteractionManager;
+    
     desiredWidth = 0;
     desiredHeight = 0;
     /** height / width */
@@ -41,36 +42,56 @@ export abstract class vbGame extends PIXI.Application {
      * everytime when the desiredResolution has changed, (style change, etc.) \
      * And also can be added to window event listener.
      */
-    resizeAppFn = (contentWidth: number, contentHeight: number) => { };
+    resizeAppFn = (contentWidth: number, contentHeight: number) => {};
 
     /** current state */
     currState = {} as vbState;
-    states: StateMap = {};
+    protected _states: StateMap = {};
     /** current style */
     currStyle = {} as StyleTable;
-    styles: StyleMap = {};
+    protected _styles: StyleMap = {};
     /** current locale */
     currLocale = {} as LocalizationTable;
-    locales: LocaleMap = {};
+    protected _locales: LocaleMap = {};
 
-    textures: TextureMap = {};
-    sequences: SequenceMap = {};
-    spines: SpineMap = {};
+    protected _textures: TextureMap = {};
+    protected _sequences: SequenceMap = {};
+    protected _spines: SpineMap = {};
     sounds = {} as vbSoundManager;
 
+    /**
+     * https://pixijs.download/v6.5.8/docs/PIXI.Application.html
+     * @param {object} [options] - The optional application parameters.
+     */
+    constructor(options?: PIXI.IApplicationOptions) {
+        PIXI.settings.RESOLUTION = window.devicePixelRatio;
+        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio;
+        super(options);
 
+        this.interaction = new vbInteractionManager(this.timers);
+        shared.init();
+
+        this.stage.name = 'MainStage';
+        // set the whole screen interactive so it can be clicked
+        this.stage.interactive = true;
+        // add the invisible rectangle to stage;
+        let rect = new vbRectangle(100, 100).fill(c.White, 0);
+        this._bgRect = new vbPrimitive(rect);
+        this.stage.addObj(this._bgRect, -9998);
+    }
+    
     async initAssets() {
         // file list json has all the assets that need to be fetched
         let assets = <AssetList>(await load_json('assets-list.json'));
         let loader = this.loader;
         await load_assets(loader, assets);
 
-        this.textures = get_textureMap(loader, assets);
-        this.sequences = get_multipack_sequenceMap(loader, assets);
-        this.spines = get_SpineMap(loader, assets);
-        this.styles = get_styleMap(loader, assets);
+        this._textures = get_textureMap(loader, assets);
+        this._sequences = get_multipack_sequenceMap(loader, assets);
+        this._spines = get_SpineMap(loader, assets);
+        this._styles = get_styleMap(loader, assets);
         this.sounds = vbSoundManagerInstance;
-        this.locales = get_localeMap(loader, assets);
+        this._locales = get_localeMap(loader, assets);
     }
 
     mainLoop(deltaFrame: number) { }
@@ -78,58 +99,38 @@ export abstract class vbGame extends PIXI.Application {
     startLoop() {
         this.mainLoop = this.mainLoop.bind(this);
         if (!DEV || (this.ticker.count < 2)) {
-            // for some reasons, when vite hot reload the vue setup script,
+            // for some reasons, vite's module hot reload doesn't work well on pixi,
             // it may cause the ticker weirdly add more and more mainLoop callbacks
             // without initializing everything from empty.
             // this check is used for preventing redundant callbacks.
-            this.ticker.add(this.mainLoop);
+            this.ticker.add(this.mainLoop, {}, PIXI.UPDATE_PRIORITY.HIGH);
         }
-    }
-
-    addState(state: vbState) {
-        this.states[state.name] = state;
-    }
-    setState(stateName: STYPE) {
-        this.currState = this.states[stateName];
-    }
-    setStyle(name: string) {
-        this.currStyle = this.styles[name];
-    }
-    setLocale(code: string) {
-        this.currLocale = this.locales[code];
     }
 
     setResolution(width: number, height: number) {
         this.desiredWidth = width;
         this.desiredHeight = height;
         this.desiredRatio = height / width;
-        this.resizeAppFn(width, height);
         if (this._txtFPS !== undefined) {
             this._txtFPS.x = width - 40;
         }
+        this._bgRect.width = width;
+        this._bgRect.height = height;
         // set the size of main container as well
         this.stage.setDesiredSize(width, height);
     }
 
     /**
-     * State timers are running only when this is the current state.
-     * 
-     * @param [stateName] If it's not specified, add to the current state.
+     * Creates an instance of Timer that is running at any time.
+     *
+     * @param [time] The time is ms before timer end or repedeated.
+     * @param [repeat] Number of repeat times. If set to Infinity it will loop forever. (default 0)
+     * @param [delay] Delay in ms before timer starts (default 0)
+     * @param [preserved] Normal timer will only be added to the TimerManager when it's running, and will be removed when it's ended. \
+     *              Preserved timer will stay to avoid constantly being added or removed.
      */
-    addStateTimer(timer: vbTimer, stateName?: STYPE) {
-        if (stateName !== undefined) {
-            this.states[stateName].timers.addTimer(timer);
-        }
-        else {
-            this.currState.timers.addTimer(timer);
-        }
-    }
-    
-    /**
-     * Global timers, running at any time.
-     */
-    addGlobalTimer(timer: vbTimer) {
-        this.timers.addTimer(timer);
+    createGlobalTimer(time: number, repeat = 0, delay = 0, preserved = false) {
+        return new vbTimer(this.timers, time, repeat, delay, preserved);
     }
 
     applyCurrentStlye() {
@@ -138,6 +139,50 @@ export abstract class vbGame extends PIXI.Application {
 
     applyCurrentLocale() {
         this.stage.localizeChildren(this.currLocale);
+    }
+
+    addState(state: vbState) {
+        this._states[state.name] = state;
+    }
+    getState(stateName: STYPE) {
+        const r = this._states[stateName];
+        if (r === undefined) throw ReferenceError(`Cannot find state ${stateName}`);
+        return r;
+    }
+    setState(stateName: STYPE) {
+        this.currState = this.getState(stateName);
+    }
+    getStyle(name: string) {
+        const r = this._styles[name];
+        if (r === undefined) throw ReferenceError(`Cannot find style ${name}`);
+        return r;
+    }
+    setStyle(name: string) {
+        this.currStyle = this.getStyle(name);
+    }
+    getLocale(code: string) {
+        const r = this._locales[code];
+        if (r === undefined) throw ReferenceError(`Cannot find locale ${code}`);
+        return r;
+    }
+    setLocale(code: string) {
+        this.currLocale = this.getLocale(code);
+    }
+
+    getTex(name: string) {
+        const r = this._textures[name];
+        if (r === undefined) throw ReferenceError(`Cannot find texture ${name}`);
+        return r;
+    }
+    getSeq(name: string) {
+        const r = this._sequences[name];
+        if (r === undefined) throw ReferenceError(`Cannot find sequence ${name}`);
+        return r;
+    }
+    getSpine(name: string) {
+        const r = this._spines[name];
+        if (r === undefined) throw ReferenceError(`Cannot find spine ${name}`);
+        return r;
     }
 
     get DeltaMS() {
