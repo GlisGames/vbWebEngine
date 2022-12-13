@@ -35,17 +35,21 @@ import type { vbTextInitOptions } from './vbText';
     }
 
     /**
-     * Add a default style text object at the center of graphic object `bg`. \
+     * Add a text object at the center of graphic object `bg`. \
      * Set vbLabel object's name by text's name.
      */
-    addDefaultTxt(options: vbTextInitOptions) {
+    addCenteredTxt(options: vbTextInitOptions, offsetX=0, offsetY=0) {
         this.txt = new vbText(options);
         this.txt.layer = 1;
         this.txt.pivotRule = PivotPoint.Center;
-        this.txt.position.set(this.bg.width/2, this.bg.height/2);
+        this.centerTxt(offsetX, offsetY);
         this.addChild(this.txt);
         // sync name
         this.name = this.txt.name;
+    }
+
+    centerTxt(offsetX=0, offsetY=0) {
+        this.txt.position.set(this.bg.width/2 + offsetX, this.bg.height/2 + offsetY);
     }
 
     addTxtObj(obj: vbText) {

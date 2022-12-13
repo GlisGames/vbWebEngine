@@ -25,6 +25,11 @@ export abstract class vbShape {
         this._lineStyle.visible = true;
         return this;
     }
+
+    reshape(...args: any) { return this; }
+    getGraphicsData() {
+        return new PIXI.GraphicsData(this.shape, this._fillStyle, this._lineStyle, this.matrix);
+    }
 }
 
 export class vbRectangle extends vbShape {
@@ -32,6 +37,10 @@ export class vbRectangle extends vbShape {
     constructor(width: number, height: number, x = 0, y = 0) {
         super();
         this.shape = new PIXI.Rectangle(x, y, width, height);
+    }
+    reshape(width: number, height: number, x = 0, y = 0) {
+        this.shape.width = width, this.shape.height = height;
+        this.shape.x = x, this.shape.y = y; return this;
     }
 }
 
@@ -41,6 +50,10 @@ export class vbCircle extends vbShape {
         super();
         this.shape = new PIXI.Circle(x, y, radius);
     }
+    reshape(radius: number, x = 0, y = 0) {
+        this.shape.radius = radius;
+        this.shape.x = x, this.shape.y = y; return this;
+    }
 }
 
 export class vbEllipse extends vbShape {
@@ -48,6 +61,10 @@ export class vbEllipse extends vbShape {
     constructor(halfWidth: number, halfHeight: number, x = 0, y = 0) {
         super();
         this.shape = new PIXI.Ellipse(x, y, halfWidth, halfHeight);
+    }
+    reshape(halfWidth: number, halfHeight: number, x = 0, y = 0) {
+        this.shape.width = halfWidth, this.shape.height = halfHeight;
+        this.shape.x = x, this.shape.y = y; return this;
     }
 }
 
@@ -62,6 +79,10 @@ export class vbPolygon extends vbShape {
         this.shape = new PIXI.Polygon(points);
         this.shape.closeStroke = closeStroke;
     }
+    reshape(closeStroke: boolean, points: number[]) {
+        this.shape.points = points;
+        this.shape.closeStroke = closeStroke; return this;
+    }
 }
 
 export class vbRoundedRectangle extends vbShape {
@@ -69,6 +90,10 @@ export class vbRoundedRectangle extends vbShape {
     constructor(width: number, height: number, radius: number, x = 0, y = 0) {
         super();
         this.shape = new PIXI.RoundedRectangle(x, y, width, height, radius);
+    }
+    reshape(width: number, height: number, radius: number, x = 0, y = 0) {
+        this.shape.width = width, this.shape.height = height;
+        this.shape.radius = radius, this.shape.x = x, this.shape.y = y; return this;
     }
 }
 
@@ -91,17 +116,29 @@ export class vbPrimitive extends vbGraphicObjectBase(PIXI.Graphics) {
 
     /**
      * Append primitive shape on this object. \
-     * If you want to reset, has to call clear() first.
+     * If you want to reset, has to use `redraw` or call `clear` first.
      */
-    appendDraw(shapeData: vbShape | vbShape[]) {
+    appendDraw(shapeData: vbShape | vbShape[] | PIXI.GraphicsGeometry) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const geometry = <any>this.geometry;
+
         if (shapeData instanceof vbShape) {
-            this.geometry.drawShape(shapeData.shape, shapeData._fillStyle, shapeData._lineStyle, shapeData.matrix);
+            this.geometry.graphicsData.push(shapeData.getGraphicsData()); geometry.dirty++;
         }
         else if (Array.isArray(shapeData)) {
-            for (let s of shapeData) {
-                this.geometry.drawShape(s.shape, s._fillStyle, s._lineStyle, s.matrix);
+            for (const s of shapeData) {
+                this.geometry.graphicsData.push(s.getGraphicsData()); geometry.dirty++;
             }
         }
+        else {
+            for (const data of shapeData.graphicsData) {
+                this.geometry.graphicsData.push(data); geometry.dirty++;
+            }
+        }
+    }
+
+    redraw(shapeData: vbShape | vbShape[] | PIXI.GraphicsGeometry) {
+        this.clear().appendDraw(shapeData);
     }
 
     static _debugLineStyle = (() => { let s = new PIXI.LineStyle();

@@ -8,6 +8,7 @@ declare global {
         clear(): void;
         front(): T;
         back(): T;
+        moveToBack(fromIndex: number): void;
         swap(index1: number, index2: number): void;
         /**
          * Remove the matched item once at a time
@@ -76,6 +77,11 @@ Array.prototype.front = function() {
 }
 Array.prototype.back = function() {
     return this[this.length - 1];
+}
+Array.prototype.moveToBack = function(fromIndex: number) {
+    let tmp = this[fromIndex];
+    this.splice(fromIndex, 1);
+    this.push(tmp);
 }
 Array.prototype.swap = function(index1: number, index2: number) {
     let tmp = this[index1];

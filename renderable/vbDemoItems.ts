@@ -23,7 +23,7 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
     constructor(shape: vbShape, txtOptions: vbTextInitOptions, tweens: vbTweenMap) {
         super(new vbPrimitive(shape));
         this.fadeTween = tweens.create('fade', this, {alpha: 0});
-        this.addDefaultTxt(txtOptions);
+        this.addCenteredTxt(txtOptions);
         // disable at start
         this.displayed = false;
         // set callback

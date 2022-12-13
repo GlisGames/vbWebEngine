@@ -12,11 +12,6 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
     constructor(name: string, obj: T, group: TWEEN.Group) {
         super(obj, group);
         this.name = name;
-        super.onComplete((object: T) => {
-            for (const callback of this._onCompleteCallbacks) {
-                callback(object);
-            }
-        });
     }
 
     start() {
@@ -29,6 +24,16 @@ export class vbTween<T extends UnknownProps> extends TWEEN.Tween<T> {
 
     resume() {
         return super.resume(globalThis.pgame.TotalMS);
+    }
+
+    /**
+     * Different from `stop()`,
+     * `end()` will set the duration and repeat to zero so that the tween completes instantly upon next update
+     */
+    end() {
+        (<any>this)._goToEnd = true;
+        (<any>this)._repeat = 0;
+        return this.duration(0.01);
     }
 
     getMap() {
@@ -124,6 +129,11 @@ export class vbTweenMap extends TWEEN.Group {
         return this.twmap?.get(name);
     }
 
+    size() {
+        if (this.twmap === undefined) return 0;
+        else return this.twmap.size;
+    }
+
     addTween(tw: vbTween<UnknownProps>) {
         if (this.twmap === undefined) {
             this.twmap = new Map<string, vbTween<UnknownProps>>();
@@ -136,6 +146,15 @@ export class vbTweenMap extends TWEEN.Group {
     removeAll() {
         super.removeAll();
         this.twmap?.clear();
+    }
+
+    endAll() {
+        if (this.twmap === undefined) return;
+        for (const item of this.twmap) {
+            item[1].end();
+        }
+        // do a force update to remove all tweens
+        this.update(Infinity, false);
     }
 
     remove(tween: vbTween<UnknownProps>, force = false) {
