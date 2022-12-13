@@ -42,7 +42,8 @@ export abstract class vbGame extends PIXI.Application {
      * everytime when the desiredResolution has changed, (style change, etc.) \
      * And also can be added to window event listener.
      */
-    resizeAppFn = (contentWidth: number, contentHeight: number) => {};
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    resizeAppFn(contentWidth: number, contentHeight: number) {};
 
     /** current state */
     currState = {} as vbState;
@@ -94,6 +95,7 @@ export abstract class vbGame extends PIXI.Application {
         this._locales = get_localeMap(loader, assets);
     }
 
+    // eslint-disable-next-line unused-imports/no-unused-vars
     mainLoop(deltaFrame: number) { }
 
     startLoop() {

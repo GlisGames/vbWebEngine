@@ -26,9 +26,10 @@ export abstract class vbShape {
         return this;
     }
 
-    reshape(...args: any) { return this; }
+    reshape(..._args: unknown[]) { return this; }
     getGraphicsData() {
-        return new PIXI.GraphicsData(this.shape, this._fillStyle, this._lineStyle, this.matrix);
+        // must be `cloned` so that a vbShape instance can be reused for different vbPrimitives 
+        return new PIXI.GraphicsData(this.shape.clone(), this._fillStyle.clone(), this._lineStyle.clone(), this.matrix?.clone());
     }
 }
 

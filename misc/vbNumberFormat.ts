@@ -1,3 +1,5 @@
+/* eslint-disable unused-imports/no-unused-vars */
+
 export function setNumberFormat(locale: string) {
     fmtNumber = fmtItalianNumber;
     fmtNumber0 = fmtItalianNumber0;

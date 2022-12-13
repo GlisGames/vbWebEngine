@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as PIXI from 'pixi.js';
 import { PivotPoint, setPivotRule, setSpritePivotRule } from './core/vbTransform';
 import type { StyleItem } from './core/vbStyle';
@@ -114,6 +115,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
          *        It is calculated based on the target FPS (by default is 60). \
          *        e.g. If the real FPS is 45, deltaFrame is around 1.5
          */
+        // eslint-disable-next-line unused-imports/no-unused-vars
         update(deltaFrame: number) {}
 
         /**
@@ -169,8 +171,8 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
                 if (this._debugBox === undefined) {
                     let rect = new PIXI.Rectangle(0, 0, width, height);
                     // Access the static variable by instance.
-                    let fillStyle = (<any>this.constructor)._debugFillStyle;
-                    let lineStyle = (<any>this.constructor)._debugLineStyle;
+                    let fillStyle = Object.getPrototypeOf(this).constructor._debugFillStyle;
+                    let lineStyle = Object.getPrototypeOf(this).constructor._debugLineStyle;
                     this._debugBox = new PIXI.Graphics();
                     this._debugBox.name = 'debugBox';
                     this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);

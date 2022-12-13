@@ -52,10 +52,10 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         setPivotRule(this, this._pivotRule, this.desz.width, this.desz.height);
         // If there's a debugBox, redraw with new size
         if (this._debugBox !== undefined) {
-            this._debugBox.clear();
             let rect = new PIXI.Rectangle(0, 0, this.desz.width, this.desz.height);
-            let fillStyle = (<any>this.constructor)._debugFillStyle;
-            let lineStyle = (<any>this.constructor)._debugLineStyle;
+            let fillStyle = Object.getPrototypeOf(this).constructor._debugFillStyle;
+            let lineStyle = Object.getPrototypeOf(this).constructor._debugLineStyle;
+            this._debugBox.clear();
             this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);
         }
     }

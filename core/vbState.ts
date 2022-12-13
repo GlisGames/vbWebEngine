@@ -19,6 +19,7 @@ export class vbState {
     get name() { return this._name; }
 
     enter() {}
+    // eslint-disable-next-line unused-imports/no-unused-vars
     update(deltaFrame: number) {}
 
     /**
