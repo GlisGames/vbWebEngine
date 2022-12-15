@@ -12,7 +12,7 @@ import { vbInteractionManager } from './core/vbInteraction';
 import { vbPrimitive, vbRectangle } from './renderable/vbPrimitive';
 import { vbSoundManager, vbSoundManagerInstance } from './misc/vbSound';
 import type { vbState } from './core/vbState';
-import { vbTimer, vbTimerManager } from './vbTimer';
+import { vbTimer, vbTimerManager } from './third-party/vbTimer';
 
 
 type StateMap = { [stateName: string]: vbState };
@@ -43,7 +43,7 @@ export abstract class vbGame extends PIXI.Application {
      * And also can be added to window event listener.
      */
     // eslint-disable-next-line unused-imports/no-unused-vars
-    resizeAppFn(contentWidth: number, contentHeight: number) {};
+    resizeAppFn(contentWidth: number, contentHeight: number) {}
 
     /** current state */
     currState = {} as vbState;

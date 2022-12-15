@@ -1,19 +1,20 @@
 /**
  * Global exports for project to use.
  */
-
 export * as PIXI from 'pixi.js';
 export * as PIXIF from 'pixi-filters';
-export { Easing, Interpolation } from '@tweenjs/tween.js';
 
 
 export { vbGraphicObject, vbGraphicObjectBase } from './vbGraphicObject';
 export type { TypeCons } from './vbGraphicObject';
-
 export { vbContainer } from './vbContainer';
-export { vbTimer } from './vbTimer';
-export { vbTween, vbTweenMap } from './vbTween';
 export { vbGame } from './vbGame';
+
+export { vbTimer } from './third-party/vbTimer';
+export { default as Easing } from './third-party/Easing';
+export { default as Interpolation } from './third-party/Interpolation';
+export { default as vbTween } from './third-party/vbTween';
+export { default as vbTweenGroup } from './third-party/vbTweenGroup';
 
 export { PivotPoint } from './core/vbTransform';
 export { vbState } from './core/vbState';

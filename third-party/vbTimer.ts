@@ -1,37 +1,7 @@
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2015 Celsius online
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
 import * as PIXI from 'pixi.js'
 
 
-/**
- * Original Auther: Shen Yiming(soimy@163.com)
- *
- * Repo: https://github.com/soimy/eventemitter3-timer
- * 
- * Modified by Glis Games
- */
-export class vbTimer extends PIXI.utils.EventEmitter {
+export class vbTimer extends PIXI.utils.EventEmitter<string> {
     /**
      * The activation status of timer.
      */
@@ -90,7 +60,7 @@ export class vbTimer extends PIXI.utils.EventEmitter {
         this._repeat = 0;
         this._timerManager = manager;
         if (this.preserved) {
-            manager.addTimer(this);
+            manager.add(this);
         }
     }
     /**
@@ -99,10 +69,10 @@ export class vbTimer extends PIXI.utils.EventEmitter {
     get timerManager() { return this._timerManager; }
     set timerManager(manager: vbTimerManager) {
         if (this._timerManager !== manager) {
-            this._timerManager.removeTimer(this);
+            this._timerManager.remove(this);
             this._timerManager = manager;
             if (this.preserved) {
-                manager.addTimer(this);
+                manager.add(this);
             }
         }
     }
@@ -114,7 +84,7 @@ export class vbTimer extends PIXI.utils.EventEmitter {
     start() {
         this.enable = true;
         if (!this.preserved) {
-            this._timerManager.addTimer(this);
+            this._timerManager.add(this);
         }
         return this;
     }
@@ -148,7 +118,7 @@ export class vbTimer extends PIXI.utils.EventEmitter {
      * Remove this timer from its TimerManager.
      */
     remove() {
-        this._timerManager.removeTimer(this);
+        this._timerManager.remove(this);
         return this;
     }
     /**
@@ -274,7 +244,7 @@ export class vbTimerManager {
             if (timer.enable) {
                 timer.update(delta);
                 if (timer.isEnded && !timer.preserved) {
-                    this.removeTimer(timer);
+                    this.remove(timer);
                 }
             }
         }
@@ -283,7 +253,7 @@ export class vbTimerManager {
      * Add timer to this TimerManager. \
      * If it's not a preserved timer, only add when it starts.
      */
-    addTimer(timer: vbTimer) {
+    add(timer: vbTimer) {
         if (timer.preserved) {
             this._timers.push(timer);
         }
@@ -296,7 +266,7 @@ export class vbTimerManager {
     /**
      * Remove timer from this TimerManager.
      */
-    removeTimer(timer: vbTimer) {
+    remove(timer: vbTimer) {
         this._timersToDelete.push(timer);
     }
     protected _remove(timer: vbTimer) {

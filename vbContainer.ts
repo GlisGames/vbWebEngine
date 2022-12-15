@@ -1,11 +1,11 @@
 import * as PIXI from 'pixi.js';
+import vbTweenGroup from './third-party/vbTweenGroup';
 import type { ContainerStyleItem, StyleList } from './core/vbStyle';
 import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, type Size2, setPivotRule } from './core/vbTransform';
 import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
-import { vbTweenMap } from './vbTween';
 
 
 /**
@@ -18,7 +18,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     /** "Bring to Front" layer */
     static readonly maxLayer = 9999;
 
-    tweens = new vbTweenMap();
+    tweens = new vbTweenGroup();
     /**
      * Desired size
      * @note [Can be used for type check]

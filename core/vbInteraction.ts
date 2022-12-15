@@ -4,8 +4,8 @@ import type { TypeCons } from '@vb/vbGraphicObject';
 import { isMobile } from '@vb/misc/WebUtils';
 import type { vbContainer } from '@vb/vbContainer';
 import { vbGraphicObject } from '@vb/vbGraphicObject';
-import { vbTimer } from '@vb/vbTimer';
-import type { vbTimerManager } from '@vb/vbTimer';
+import { vbTimer } from '@vb/third-party/vbTimer';
+import type { vbTimerManager } from '@vb/third-party/vbTimer';
 
 
 export type InteractionFn = (e: PIXI.InteractionEvent) => void;

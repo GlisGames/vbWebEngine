@@ -1,10 +1,11 @@
 /** Here to put some simple objects used for demo purpose, like a message box...  */
+import type vbTween from '@vb/third-party/vbTween';
+import type vbTweenGroup from '@vb/third-party/vbTweenGroup';
 import { c } from '@vb/misc/vbShared';
 import { vbButton } from './vbButton';
 import { vbPrimitive, vbShape } from './vbPrimitive';
 import { vbText } from './vbText';
 import type { vbTextInitOptions } from './vbText';
-import type { vbTween, vbTweenMap } from '@vb/vbTween';
 
 
 /**
@@ -20,7 +21,7 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
      * @param [txtOptions] Options for text
      * @param [tweens] Reference of the containers' tween map
      */
-    constructor(shape: vbShape, txtOptions: vbTextInitOptions, tweens: vbTweenMap) {
+    constructor(shape: vbShape, txtOptions: vbTextInitOptions, tweens: vbTweenGroup) {
         super(new vbPrimitive(shape));
         this.fadeTween = tweens.create('fade', this, {alpha: 0});
         this.addCenteredTxt(txtOptions);
@@ -30,7 +31,7 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
         this.fadeTween.onStart((obj: this) => {
             this.onStartFadingFn(obj);
         })
-        .onComplete((obj: this) => {
+        .onEnd((obj: this) => {
             this.displayed = false;
             this.onFadeEndFn(obj);
         });
@@ -52,7 +53,7 @@ export class vbPopMessage extends vbButton<vbPrimitive> {
         if (!this.enable) return;
         this.displayed = true;
         this.alpha = 1;
-        this.fadeTween.delay(displayTime).duration(fadeTime).restart();
+        this.fadeTween.delay(displayTime).duration(fadeTime).start(true);
     }
 }
 
