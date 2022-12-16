@@ -47,7 +47,7 @@ export type vbTextInitOptions = {
 /**
  * Text With localization support
  */
- export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLocalizedObject {
+export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLocalizedObject {
     protected _key = '';
     protected _useDefaultFont: boolean;
 

@@ -34,6 +34,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         if (desiredWidth !== undefined && desiredHeight !== undefined) {
             this.setDesiredSize(desiredWidth, desiredHeight);
         }
+        this.isNestedStyle = false;
     }
 
     /**
@@ -149,18 +150,51 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     /**
      * Recursively apply style to all the children.
      */
-    applyChildrenStyle(style: StyleList) {
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    applyChildrenStyle(style: StyleList) { }
+
+    /**
+     * Style item of a container can also be nested style list
+     */
+    get isNestedStyle() {
+        return this.applyChildrenStyle === this._applyNestedStyle;
+    }
+    set isNestedStyle(en: boolean) {
+        if (en)
+            this.applyChildrenStyle = this._applyNestedStyle;
+        else
+            this.applyChildrenStyle = this._applyChildrenStyle;
+    }
+
+    protected _applyChildrenStyle(style: StyleList) {
         for (let obj of this.children) {
             let vbObj = <vbGraphicObject>obj;
             if (vbObj.applyStyle === undefined) continue;
 
             let item = style[vbObj.name];
             if (item !== undefined)
-                vbObj.applyStyle(style[vbObj.name]);
+                vbObj.applyStyle(item);
 
             let container = <vbContainer>obj;
             if (container.desz === undefined) continue;
             container.applyChildrenStyle(style);
+        }
+    }
+
+    protected _applyNestedStyle(style: StyleList) {
+        const nestedList = <StyleList>style[this.name];
+        if (nestedList === undefined) return;
+        for (let obj of this.children) {
+            let vbObj = <vbGraphicObject>obj;
+            if (vbObj.applyStyle === undefined) continue;
+
+            let item = nestedList[vbObj.name];
+            if (item !== undefined)
+                vbObj.applyStyle(item);
+
+            let container = <vbContainer>obj;
+            if (container.desz === undefined) continue;
+            container.applyChildrenStyle(nestedList);
         }
     }
 

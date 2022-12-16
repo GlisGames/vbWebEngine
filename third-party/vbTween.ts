@@ -221,9 +221,11 @@ class vbTween<T extends UnknownProps> {
     /**
      * This method will only keep one callback at a time
      */
-    onEnd(callback: (object: T) => void): this {
-        this.clearOnEnd().addOnEnd(callback)
-        return this
+    onEnd(callback?: (object: T) => void): this {
+        if (callback !== undefined)
+            return this.clearOnEnd().addOnEnd(callback)
+        else
+            return this.clearOnEnd()
     }
     onStart(callback?: (object: T) => void): this {
         this._onStartCallback = callback

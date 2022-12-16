@@ -81,7 +81,8 @@ export class vbTimer extends PIXI.utils.EventEmitter<string> {
      * If it's not a preserved timer, add it to its TimerManager. \
      * A `start` event will be emitted.
      */
-    start() {
+    start(reset=false) {
+        if (reset) this.reset();
         this.enable = true;
         if (!this.preserved) {
             this._timerManager.add(this);
@@ -110,9 +111,6 @@ export class vbTimer extends PIXI.utils.EventEmitter<string> {
         this.isStarted = false;
         this.isEnded = false;
         return this;
-    }
-    restart() {
-        return this.reset().start();
     }
     /**
      * Remove this timer from its TimerManager.
@@ -225,7 +223,7 @@ export class vbTimerManager {
     protected _timers: vbTimer[] = [];
     protected _timersToDelete: vbTimer[] = [];
 
-    count() { return this._timers.length; }
+    size() { return this._timers.length; }
     /**
      * Increment all managed timers' time.\
      * Better to use this method instead of `timers.update()` for centralized control.

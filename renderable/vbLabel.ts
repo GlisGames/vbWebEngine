@@ -15,7 +15,7 @@ import type { vbTextInitOptions } from './vbText';
  * NOTE: The names of vbLabel object and its `txt` member variable should be the same
  * in order to properly get the localization.
  */
- export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLocalizedObject {
+export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLocalizedObject {
     bg: T;
     txt = {} as vbText;
 
