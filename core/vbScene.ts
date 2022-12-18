@@ -3,8 +3,7 @@ import type { vbGraphicObject } from '@vb/vbGraphicObject';
 
 
 /**
- * The scene itself is fairly easy: it holds all object references
- * so that you can get them by global singleton.
+ * Right now the scene itself doesn't do anything...
  */
 export class vbScene {
     protected _name: string;
@@ -51,20 +50,26 @@ export class vbSceneTransition {
         }
     }
 
-    enter() {
+    /**
+     * Add objects that don't exist on the current scene
+     */
+    enterNextScene() {
         for (let vbObj of this.toDiffObjs) {
             this.rootStage.addObjWithConfig(vbObj);
         }
     }
 
-    exit() {
+    /**
+     * Remove objects that don't exist on the next scene
+     */
+    exitCurrScene() {
         for (let vbObj of this.fromDiffObjs) {
             this.rootStage.removeObj(vbObj);
         }
     }
 
-    start() {
-        this.exit();
-        this.enter();
+    transit() {
+        this.exitCurrScene();
+        this.enterNextScene();
     }
 }
