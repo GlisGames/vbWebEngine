@@ -76,6 +76,7 @@ export class vbSceneTransition {
         for (const vbObj of this.fromDiffObjs) {
             this.rootStage.removeObj(vbObj);
         }
+        globalThis.pgame.currScene = this.toScene;
     }
 
     transit() {
