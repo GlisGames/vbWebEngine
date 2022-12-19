@@ -9,10 +9,33 @@ import { vbGraphicObjectBase } from './vbGraphicObject';
 
 
 /**
+ * Bare minimum empty container that only has `addObj` method,
+ * used for simple objects that don't need to recursive apply style or localization to children.
+ */
+export class vbMinimalContainer extends vbGraphicObjectBase(PIXI.Container) {
+    addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
+        if (!isNaN(layer)) {
+            vbObj.layer = layer;
+        }
+        if (name != '') {
+            vbObj.name = name;
+        }
+        this.addChild(vbObj);
+        return this;
+    }
+
+    removeObj(vbObj: vbGraphicObject) {
+        this.removeChild(vbObj);
+    }
+}
+
+/**
+ * Recursively update children, apply style and localize.
+ * 
  * As is discussed at @see vbGraphicObject.debugBox, `width` and `height` can be dynamically changed, \
  * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
-export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
+export class vbContainer extends vbMinimalContainer {
     /** "Send to Back" layer */
     static readonly minLayer = -9999;
     /** "Bring to Front" layer */
@@ -67,17 +90,6 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         setPivotRule(this, rule, this.desz.width, this.desz.height);
     }
 
-    addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
-        if (!isNaN(layer)) {
-            vbObj.layer = layer;
-        }
-        if (name != '') {
-            vbObj.name = name;
-        }
-        this.addChild(vbObj);
-        return this;
-    }
-
     /**
      * Try to recursively apply style and localization as well.
      * Usually it's only used when adding objects to root container.
@@ -100,10 +112,6 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
             container.localizeChildren(table);
         }
         this.addChild(vbObj);
-    }
-
-    removeObj(vbObj: vbGraphicObject) {
-        this.removeChild(vbObj);
     }
 
     sendObjToBack(vbObj: vbGraphicObject) {
