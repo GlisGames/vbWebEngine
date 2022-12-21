@@ -9,6 +9,8 @@ export enum PivotPoint {
     TopMiddle,
     TopRight,
     Center,
+    MiddleLeft,
+    MiddleRight,
     BottomLeft,
     BottomMiddle,
     BottomRight,
@@ -28,6 +30,12 @@ export function setPivotRule(obj: PIXI.Container, rule: PivotPoint, width: numbe
         }
         case PivotPoint.Center: {
             obj.pivot.set(width/2, height/2); break;
+        }
+        case PivotPoint.MiddleLeft: {
+            obj.pivot.set(0, height/2); break;
+        }
+        case PivotPoint.MiddleRight: {
+            obj.pivot.set(width, height/2); break;
         }
         case PivotPoint.BottomLeft: {
             obj.pivot.set(0, height); break;
@@ -54,6 +62,12 @@ export function setSpritePivotRule(obj: PIXI.Sprite, rule: PivotPoint) {
         }
         case PivotPoint.Center: {
             obj.anchor.set(0.5); break;
+        }
+        case PivotPoint.MiddleLeft: {
+            obj.anchor.set(0, 0.5); break;
+        }
+        case PivotPoint.MiddleRight: {
+            obj.anchor.set(1, 0.5); break;
         }
         case PivotPoint.BottomLeft: {
             obj.anchor.set(0, 1); break;

@@ -33,7 +33,7 @@ type LocalizedDictionary = {
 
 /**
  * For localized image, each key name maps a texture,
- * but sometimes different styles (landscape, portrait etc) may also have different 
+ * but sometimes different styles (landscape, portrait etc) may also have different textures
  */
 export type StylesTextureMap = {
     [styleName: string]: string

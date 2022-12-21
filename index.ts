@@ -7,7 +7,7 @@ export * as PIXIF from 'pixi-filters';
 
 export { vbGraphicObject, vbGraphicObjectBase } from './vbGraphicObject';
 export type { TypeCons } from './vbGraphicObject';
-export { vbContainer } from './vbContainer';
+export { vbContainer, vbMinimalContainer } from './vbContainer';
 export { vbGame } from './vbGame';
 
 export { vbTimer } from './third-party/vbTimer';

@@ -41,7 +41,6 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
     addCenteredTxt(options: vbTextInitOptions, offsetX=0, offsetY=0) {
         this.txt = new vbText(options);
         this.txt.layer = 1;
-        this.txt.pivotRule = PivotPoint.Center;
         this.centerTxt(offsetX, offsetY);
         this.addChild(this.txt);
         // sync name
@@ -49,21 +48,22 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
     }
 
     centerTxt(offsetX=0, offsetY=0) {
+        this.txt.pivotRule = PivotPoint.Center;
         this.txt.position.set(this.bg.width/2 + offsetX, this.bg.height/2 + offsetY);
     }
 
-    addTxtObj(obj: vbText) {
-        if (this.txt !== undefined) {
+    addTxtObj(options: vbTextInitOptions) {
+        if (this.txt.applyStyle !== undefined) {
             this.removeChild(this.txt);
             this.txt.destroy();
         }
-        this.txt = obj;
+        this.txt = new vbText(options);
         this.addChild(this.txt);
         // sync name
         this.name = this.txt.name;
     }
 
-    setTxt(s: string) {
+    setTxt(s: string | number) {
         this.txt.text = s;
     }
 
