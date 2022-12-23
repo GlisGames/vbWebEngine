@@ -189,6 +189,9 @@ Math.shuffle = function(arr: any[], n?: number) {
 export function unbindXY(pos: Pos2, arr: [number, number]) {
     pos.x = arr[0], pos.y = arr[1];
 }
+export function assignPos(target: Pos2, source: Pos2) {
+    target.x = source.x, target.y = source.y;
+}
 
 export function distance2(a: Pos2, b: Pos2) {
     let dx = a.x - b.x, dy = a.y - b.y;
