@@ -3,7 +3,6 @@ import type { AssetList } from './misc/vbLoader';
 import { FPSCounter } from './renderable/vbDemoItems';
 import type { LocalizationTable } from './core/vbLocalization';
 import type { STYPE } from '@g/states/StateTypes';
-import type { SpineData } from './renderable/vbSpineObject';
 import type { StyleTable } from './core/vbStyle';
 import { c, shared } from './misc/vbShared';
 import { get_SpineMap, get_localeMap, get_multipack_sequenceMap, get_styleMap, get_textureMap, load_assets, load_json } from './misc/vbLoader'
@@ -55,7 +54,6 @@ export abstract class vbGame extends PIXI.Application {
 
     protected _textures: Record<string, PIXI.Texture> = {};
     protected _sequences: Record<string, PIXI.Texture[]> = {};
-    protected _spines: Record<string, SpineData> = {};
     sounds = {} as vbSoundManager;
 
     /**
@@ -87,7 +85,7 @@ export abstract class vbGame extends PIXI.Application {
 
         this._textures = get_textureMap(loader, assets);
         this._sequences = get_multipack_sequenceMap(loader, assets);
-        this._spines = get_SpineMap(loader, assets);
+        //this._spines = get_SpineMap(loader, assets);
         this._styles = get_styleMap(loader, assets);
         this.sounds = vbSoundManagerInstance;
         this._locales = get_localeMap(loader, assets);
@@ -191,9 +189,9 @@ export abstract class vbGame extends PIXI.Application {
         return r;
     }
     getSpine(name: string) {
-        const r = this._spines[name];
-        if (r === undefined) throw ReferenceError(`Cannot find spine ${name}`);
-        return r;
+        //const r = this._spines[name];
+        //if (r === undefined) throw ReferenceError(`Cannot find spine ${name}`);
+        return null;
     }
 
     get DeltaMS() {

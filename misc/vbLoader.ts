@@ -1,7 +1,5 @@
 import * as PIXI from 'pixi.js';
 import type { LocalizationTable } from '@vb/core/vbLocalization';
-import type { SpineData } from '@vb/renderable/vbSpineObject';
-import { SpineLoaderPlugin } from '@vb/renderable/vbSpineObject';
 import type { StyleTable } from '@vb/core/vbStyle';
 import { WebfontLoaderPlugin } from 'pixi-webfont-loader';
 
@@ -161,16 +159,15 @@ export function get_multipack_sequenceMap(loader: PIXI.Loader, assets: AssetList
 
 
 export function get_SpineMap(loader: PIXI.Loader, assets: AssetList) {
-    let spineMap: { [name: string]: SpineData } = {};
-    for (let filename of assets.spine_json) {
-        // use the name of the subdirectory as spine's name
-        let spinename = filename.split('/')[1];
-        let data = loader.resources[filename].spineData;
-        if (data !== undefined) {
-            spineMap[spinename] = data;
-        }
-    }
-    return spineMap;
+    // for (let filename of assets.spine_json) {
+    //     // use the name of the subdirectory as spine's name
+    //     let spinename = filename.split('/')[1];
+    //     let data = loader.resources[filename].spineData;
+    //     if (data !== undefined) {
+    //         spineMap[spinename] = data;
+    //     }
+    // }
+    return null;
 }
 
 
@@ -205,4 +202,4 @@ export function get_localeMap(loader: PIXI.Loader, assets: AssetList) {
 
 // THIS STATEMENT SHOULD NOT BE INSIDE AN ASYNC FUNCTION!!! (IDK WHY)
 PIXI.extensions.add({type: 'loader', ref: WebfontLoaderPlugin, name: 'webfont'});
-PIXI.extensions.add({type: 'loader', ref: SpineLoaderPlugin, name: 'spine'});
+//PIXI.extensions.add({type: 'loader', ref: SpineLoaderPlugin, name: 'spine'});
