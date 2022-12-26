@@ -40,7 +40,7 @@ export function load_jsons(filenames: string[]) {
 }
 
 
-// eslint-disable-next-line unused-imports/no-unused-vars
+// eslint-disable-next-line
 var _custom_add_assets_fn = (loader: PIXI.Loader, assets: AssetList) => {};
 /**
  * Here you can write a custom function to add additional assets that loader should load, \

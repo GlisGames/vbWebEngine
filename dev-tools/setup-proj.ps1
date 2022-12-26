@@ -21,14 +21,14 @@ function BuildLibrary {
     Write-Host "Check tmp folder" -ForegroundColor Green
     if (-not (Test-Path "tmp")) {
         Write-Host "Create tmp folder" -ForegroundColor Green
-        New-Item "tmp" -ItemType Directory
+        New-Item "tmp" -ItemType Directory -ErrorAction Stop
     }
     Set-Location "tmp"
 
     Write-Host "Check pixi-spine-tmp repo" -ForegroundColor Green
     if (Test-Path "pixi-spine-tmp") {
         Write-Host "Delete existing pixi-spine-tmp repo" -ForegroundColor Green
-        Remove-Item "pixi-spine-tmp" -Recurse -Force
+        Remove-Item "pixi-spine-tmp" -Recurse -Force -ErrorAction Stop
     }
 
     Write-Host "Clone pixi-spine-tmp repo from github" -ForegroundColor Green
@@ -46,9 +46,6 @@ function BuildLibrary {
     Write-Host "Run `"rush update`"" -ForegroundColor Green
     rush update
     if ($LASTEXITCODE -ne 0) { throw "Error running `"rush update`"" }
-    Write-Host "Run `"npm install`"" -ForegroundColor Green
-    npm i
-    if ($LASTEXITCODE -ne 0) { throw "Error running `"npm install`"" }
     Write-Host "Run `"npm run build`"" -ForegroundColor Green
     npm run build
     if ($LASTEXITCODE -ne 0) { throw "Error running `"npm run build`"" }
@@ -61,10 +58,10 @@ function SetupProject {
         Write-Host "Check node_modules and pnpm-lock.yaml" -ForegroundColor Green
         if (Test-Path "node_modules") {
             Write-Host "Delete existing node_modules" -ForegroundColor Green
-            Remove-Item "node_modules" -Recurse -Force
+            Remove-Item "node_modules" -Recurse -Force -ErrorAction Stop
         }
         if (Test-Path "pnpm-lock.yaml") {
-            Remove-Item "pnpm-lock.yaml" -Recurse -Force
+            Remove-Item "pnpm-lock.yaml" -Recurse -Force -ErrorAction Stop
         }
     }
 

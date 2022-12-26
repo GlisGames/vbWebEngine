@@ -24,7 +24,7 @@ export class vbState extends PIXI.utils.EventEmitter<string> {
     get name() { return this._name; }
 
     enter() {}
-    // eslint-disable-next-line unused-imports/no-unused-vars
+    // eslint-disable-next-line
     update(deltaFrame: number) {}
 
     /**

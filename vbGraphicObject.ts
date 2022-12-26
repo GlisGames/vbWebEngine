@@ -115,7 +115,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
          *        It is calculated based on the target FPS (by default is 60). \
          *        e.g. If the real FPS is 45, deltaFrame is around 1.5
          */
-        // eslint-disable-next-line unused-imports/no-unused-vars
+        // eslint-disable-next-line
         update(deltaFrame: number) {}
 
         /**

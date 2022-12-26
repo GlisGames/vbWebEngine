@@ -158,7 +158,7 @@ export class vbContainer extends vbMinimalContainer {
     /**
      * Recursively apply style to all the children.
      */
-    // eslint-disable-next-line unused-imports/no-unused-vars
+    // eslint-disable-next-line
     applyChildrenStyle(style: StyleList) { }
 
     /**

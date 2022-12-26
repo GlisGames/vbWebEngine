@@ -120,7 +120,7 @@ export class vbPrimitive extends vbGraphicObjectBase(PIXI.Graphics) {
      * If you want to reset, has to use `redraw` or call `clear` first.
      */
     appendDraw(shapeData: vbShape | vbShape[] | PIXI.GraphicsGeometry) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line
         const geometry = <any>this.geometry;
 
         if (shapeData instanceof vbShape) {
