@@ -186,11 +186,32 @@ Math.shuffle = function(arr: any[], n?: number) {
 }
 
 
-export function unbindXY(pos: Pos2, arr: [number, number]) {
-    pos.x = arr[0], pos.y = arr[1];
+export function arrToObj<T>(arr: T[]) {
+    const obj: Record<number, T> = {};
+    for (let i of Array.range(arr.length)) {
+        obj[i] = arr[i];
+    }
+    return obj;
+}
+
+export function unbindPos(target: Pos2, source: [number, number]) {
+    target.x = source[0], target.y = source[1];
 }
 export function assignPos(target: Pos2, source: Pos2) {
     target.x = source.x, target.y = source.y;
+}
+
+type RecursivePositions = { [k: string]: PositionItem };
+type PositionItem = Pos2 | RecursivePositions;
+export function assignPosBatch(target: RecursivePositions, source: RecursivePositions) {
+    for (const key in target) {
+        const targetObj = target[key];
+        const sourceObj = source[key];
+        if (targetObj.x === undefined || targetObj.y === undefined)
+            assignPosBatch(<RecursivePositions>targetObj, <RecursivePositions>sourceObj);
+        else
+            assignPos(<Pos2>targetObj, <Pos2>sourceObj);
+    }
 }
 
 export function distance2(a: Pos2, b: Pos2) {

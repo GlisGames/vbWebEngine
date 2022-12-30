@@ -335,7 +335,8 @@ class vbTween<T extends UnknownProps> {
                 if (this._repeatDelayTime !== undefined) {
                     this._startTime = time + this._repeatDelayTime
                 } else {
-                    this._startTime = time + this._delayTime
+                    // this._startTime = time + this._delayTime
+                    this._startTime = time
                 }
 
                 if (this._onRepeatCallback) {
