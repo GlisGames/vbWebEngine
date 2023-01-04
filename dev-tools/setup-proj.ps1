@@ -1,8 +1,20 @@
 param (
-    [switch] $Build = $false
+    [switch] $Build = $false,
+    [switch] $Reinstall = $false
 )
 $CurrDir = $PWD
 $ProjDir = (Get-Item $PSScriptRoot).Parent.Parent.Parent.FullName
+
+function CheckNodeVersion {
+    $Result = node -v
+    $Result = $Result.SubString(1).Split(".")
+    $Major = [int]$Result[0]
+    $Minor = [int]$Result[1]
+    Write-Host ("Node.js Major version:{0}; Minor version:{1}" -f $Major, $Minor) -ForegroundColor Green
+    if ($Major -ne 16 -or $Minor -ne 17) {
+        throw "Please nstall Node.js v16.17.xx!"
+    }
+}
 
 function CheckPackages {
     Write-Host "Check git" -ForegroundColor Green
@@ -54,7 +66,7 @@ function BuildLibrary {
 function SetupProject {
     Set-Location $ProjDir
 
-    if ($Build) {
+    if ($Build -or $Reinstall) {
         Write-Host "Check node_modules and pnpm-lock.yaml" -ForegroundColor Green
         if (Test-Path "node_modules") {
             Write-Host "Delete existing node_modules" -ForegroundColor Green
@@ -75,6 +87,7 @@ function SetupProject {
 }
 
 try {
+    CheckNodeVersion
     CheckPackages
     if ($Build) {
         BuildLibrary
