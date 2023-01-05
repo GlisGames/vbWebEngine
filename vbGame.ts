@@ -138,7 +138,7 @@ export abstract class vbGame extends PIXI.Application {
     }
 
     applyCurrentLocale() {
-        this.stage.localizeChildren(this.currLocale);
+        this.stage.localizeChildren(this.currLocale.dict, this.currLocale.styles);
     }
 
     addState(state: vbState) {

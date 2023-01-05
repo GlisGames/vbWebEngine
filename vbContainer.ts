@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import vbTweenGroup from './third-party/vbTweenGroup';
 import type { ContainerStyleItem, StyleList } from './core/vbStyle';
-import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
+import type { LocalizedDictionary, TextStyleList, vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, type Size2, setPivotRule } from './core/vbTransform';
 import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
@@ -92,7 +92,7 @@ export class vbContainer extends vbMinimalContainer {
 
     /**
      * Try to recursively apply style and localization as well.
-     * Usually it's only used when adding objects to root container.
+     * Usually it's only used when adding objects to root container. @see `vbSceneTransition`
      */
     addObjWithConfig(vbObj: vbGraphicObject) {
         let style = globalThis.pgame.currStyle.list;
@@ -104,12 +104,12 @@ export class vbContainer extends vbMinimalContainer {
         // try to localize
         let locObj = <vbLocalizedObject>vbObj;
         if (locObj.localize !== undefined)
-            locObj.localize(table, table.styles[locObj.name]);
+            locObj.localize(table.dict, table.styles[locObj.name]);
         // try to apply recursively
         let container = <vbContainer>vbObj;
         if (container.desz !== undefined) {
             container.applyChildrenStyle(style);
-            container.localizeChildren(table);
+            container.localizeChildren(table.dict, table.styles);
         }
         this.addChild(vbObj);
     }
@@ -162,16 +162,26 @@ export class vbContainer extends vbMinimalContainer {
     applyChildrenStyle(style: StyleList) { }
 
     /**
+     * Recursively set language to all localized objects.
+     */
+    // eslint-disable-next-line
+    localizeChildren(dict: LocalizedDictionary, styles: TextStyleList) { }
+
+    /**
      * Style item of a container can also be nested style list
      */
     get isNestedStyle() {
         return this.applyChildrenStyle === this._applyNestedStyle;
     }
     set isNestedStyle(en: boolean) {
-        if (en)
+        if (en) {
             this.applyChildrenStyle = this._applyNestedStyle;
-        else
+            this.localizeChildren = this._localizeChildren;
+        }
+        else {
             this.applyChildrenStyle = this._applyChildrenStyle;
+            this.localizeChildren = this._localizeChildrenNested;
+        }
     }
 
     protected _applyChildrenStyle(style: StyleList) {
@@ -188,7 +198,6 @@ export class vbContainer extends vbMinimalContainer {
             container.applyChildrenStyle(style);
         }
     }
-
     protected _applyNestedStyle(style: StyleList) {
         const nestedList = <StyleList>style[this.name];
         if (nestedList === undefined) return;
@@ -206,18 +215,28 @@ export class vbContainer extends vbMinimalContainer {
         }
     }
 
-    /**
-     * Recursively set language to all localized objects.
-     */
-    localizeChildren(table: LocalizationTable) {
+    protected _localizeChildren(dict: LocalizedDictionary, styles: TextStyleList) {
         for (let obj of this.children) {
             let locObj = <vbLocalizedObject>obj;
             if (locObj.localize !== undefined)
-                locObj.localize(table, table.styles[locObj.name]);
+                locObj.localize(dict, styles[locObj.name]);
 
             let container = <vbContainer>obj;
             if (container.desz === undefined) continue;
-            container.localizeChildren(table);
+            container.localizeChildren(dict, styles);
+        }
+    }
+    protected _localizeChildrenNested(dict: LocalizedDictionary, styles: TextStyleList) {
+        let nestedList = <TextStyleList>styles[this.name];
+        if (nestedList === undefined) nestedList = {};
+        for (let obj of this.children) {
+            let locObj = <vbLocalizedObject>obj;
+            if (locObj.localize !== undefined)
+                locObj.localize(dict, nestedList[locObj.name]);
+
+            let container = <vbContainer>obj;
+            if (container.desz === undefined) continue;
+            container.localizeChildren(dict, nestedList);
         }
     }
 

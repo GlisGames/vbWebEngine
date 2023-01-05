@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import type { LocalizationTable, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
+import type { LocalizedDictionary, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
 import { PivotPoint, setPivotRule } from '@vb/core/vbTransform';
 import type { vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
@@ -80,8 +80,8 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
         this.txt.update(deltaFrame);
     }
 
-    localize(table: LocalizationTable, item?: TextStyleItem) {
-        this.txt.localize(table, item);
+    localize(dict: LocalizedDictionary, item?: TextStyleItem) {
+        this.txt.localize(dict, item);
     }
 }
 

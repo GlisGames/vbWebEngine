@@ -19,7 +19,8 @@ export type {
 } from '@vb/core/vbStyle';
 export type {
     TextStyleItem,
-    StylesTextureMap,
+    TextStyleList,
+    LocalizedDictionary,
     LocalizationTable
 } from '@vb/core/vbLocalization';
 export type { InteractionFn } from '@vb/core/vbInteraction';
