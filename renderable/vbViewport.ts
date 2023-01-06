@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import type { LocalizationTable } from '@vb/core/vbLocalization';
+import type { LocalizedDictionary, TextStyleList } from '@vb/core/vbLocalization';
 import type { StyleList } from '@vb/core/vbStyle';
 import { Viewport } from 'pixi-viewport';
 import { vbContainer } from '@vb/vbContainer';
@@ -135,8 +135,8 @@ export class vbInteractiveViewport extends vbContainer {
     applyChildrenStyle(style: StyleList) {
         vbContainer.prototype.applyChildrenStyle.call(this.vp, style);
     }
-    localizeChildren(table: LocalizationTable) {
-        vbContainer.prototype.localizeChildren.call(this.vp, table);
+    localizeChildren(dict: LocalizedDictionary, styles: TextStyleList) {
+        vbContainer.prototype.localizeChildren.call(this.vp, dict, styles);
     }
 }
 

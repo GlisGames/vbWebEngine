@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /** Any utility functions, extensions etc */
 import type { Pos2 } from '@vb/core/vbTransform';
+import { m } from './vbShared';
 
 
 declare global {
@@ -8,10 +9,9 @@ declare global {
         clear(): void;
         front(): T;
         back(): T;
+        moveToBack(fromIndex: number): void;
         swap(index1: number, index2: number): void;
-        /**
-         * Remove the matched item once at a time
-         */
+        /** Remove the matched item once at a time */
         removeOnce(item: T): void;
         union(other: T[]): T[];
         intersection(other: T[]): T[];
@@ -19,31 +19,28 @@ declare global {
     }
 
     interface ArrayConstructor {
-        /**
-         *  Generate a list of numbers
-         */
-        range(start: number, stop?: number, step?: number): number[];
+        /** Generate a list of numbers */
+        rangeFrom(start: number, stop?: number, step?: number): number[];
+        /** Return an iterator */
+        range(start: number, stop?: number, step?: number): Generator<number, void>;
     }
 
     interface String {
         /**
-         * Map multiple strings (simply use replace multiple times...)
+         * Map multiple strings
+         * (simply use replace multiple times...)
          */
         mapReplace(objects: { [from: string]: string | number }): string;
     }
 
     interface Number {
-        /**
-         * Format number with padding character
-         */
+        /** Format number with padding character */
         pad(len: number, char: string): string;
         pad0(len: number): string;
     }
 
     interface ObjectConstructor {
-        /**
-         * Remove all undefined properties, use at your own risk
-         */
+        /** Remove all undefined properties, use at your own risk */
         removeUndef(obj: any): void;
     }
 
@@ -77,6 +74,11 @@ Array.prototype.front = function() {
 Array.prototype.back = function() {
     return this[this.length - 1];
 }
+Array.prototype.moveToBack = function(fromIndex: number) {
+    let tmp = this[fromIndex];
+    this.splice(fromIndex, 1);
+    this.push(tmp);
+}
 Array.prototype.swap = function(index1: number, index2: number) {
     let tmp = this[index1];
     this[index1] = this[index2];
@@ -98,13 +100,26 @@ Array.prototype.difference = function(other: any[]) {
     return Array.from(this).filter(x => !other.includes(x));
 }
 
-Array.range = function range(start: number, stop?: number, step?: number) {
+Array.rangeFrom = function(start: number, stop?: number, step?: number) {
     if (step === undefined) step = 1;
     if (stop === undefined) {
         stop = start;
         start = 0;
     }
     return Array.from({ length: (stop - start) / step }, (_, i) => start + (i * <any>step));
+}
+Array.range = function(start: number, stop?: number, step?: number) {
+    if (step === undefined) step = 1;
+    if (stop === undefined) {
+        stop = start;
+        start = 0;
+    }
+    const gen = function* () {
+        for (let i = start; i < (<number>stop); i += (<number>step)) {
+            yield i;
+        }
+    }
+    return gen();
 }
 
 String.prototype.mapReplace = function(objects: { [from: string]: string | number }) {
@@ -171,6 +186,34 @@ Math.shuffle = function(arr: any[], n?: number) {
 }
 
 
+export function arrToObj<T>(arr: T[]) {
+    const obj: Record<number, T> = {};
+    for (let i of Array.range(arr.length)) {
+        obj[i] = arr[i];
+    }
+    return obj;
+}
+
+export function unbindPos(target: Pos2, source: [number, number]) {
+    target.x = source[0], target.y = source[1];
+}
+export function assignPos(target: Pos2, source: Pos2) {
+    target.x = source.x, target.y = source.y;
+}
+
+type RecursivePositions = { [k: string]: PositionItem };
+type PositionItem = Pos2 | RecursivePositions;
+export function assignPosBatch(target: RecursivePositions, source: RecursivePositions) {
+    for (const key in target) {
+        const targetObj = target[key];
+        const sourceObj = source[key];
+        if (targetObj.x === undefined || targetObj.y === undefined)
+            assignPosBatch(<RecursivePositions>targetObj, <RecursivePositions>sourceObj);
+        else
+            assignPos(<Pos2>targetObj, <Pos2>sourceObj);
+    }
+}
+
 export function distance2(a: Pos2, b: Pos2) {
     let dx = a.x - b.x, dy = a.y - b.y;
     return dx * dx + dy * dy;
@@ -179,4 +222,14 @@ export function distance2(a: Pos2, b: Pos2) {
 export function distance(a: Pos2, b: Pos2) {
     let dx = a.x - b.x, dy = a.y - b.y;
     return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * fit the range [0, interval)
+ * @param [interval] default is 2pi
+ */
+export function roundRadian(r: number, interval=m.pi2) {
+    r = r % interval;
+    if (r < 0) r += interval;
+    return r;
 }

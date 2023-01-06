@@ -1,6 +1,6 @@
 import {
     Spine,
-    //SpineDebugRenderer,
+    SpineDebugRenderer,
     SpineParser as SpineLoaderPlugin
 } from 'pixi-spine';
 import type { ISkeletonData as SpineData } from 'pixi-spine';
@@ -14,24 +14,25 @@ export class vbSpineObject extends vbGraphicObjectBase(Spine) {
      * Shared debug renderer instance, \
      * All spine objects that use this instance share the same debug options.
      */
-    //static debug = new SpineDebugRenderer();
+    static debug = new SpineDebugRenderer();
 
     constructor(data: SpineData) {
         super(data);
         this.autoUpdate = false;
     }
 
+    // eslint-disable-next-line
     update(deltaFrame: number) {
         // Spine update function accepts seconds as parameter.
         Spine.prototype.update.call(this, globalThis.pgame.DeltaMS * 0.001);
     }
 
-    // get debug(): SpineDebugRenderer {
-    //     return <any>super.debug;
-    // }
-    // set debug(value: SpineDebugRenderer) {
-    //     super.debug = value;
-    // }
+    get debug(): SpineDebugRenderer {
+        return <SpineDebugRenderer>super.debug;
+    }
+    set debug(value: SpineDebugRenderer) {
+        super.debug = value;
+    }
 
     /**
      * Construct or destruct debug renderer. \
@@ -39,21 +40,15 @@ export class vbSpineObject extends vbGraphicObjectBase(Spine) {
      * 
      * @param [shared] Whether the use `vbSpineObject.debug` shared instance
      */
-    constructDebugRenderer(shared = true, en = true)
-     {
-        // if (this.debug === undefined) {
-        //     if (shared) {
-        //         this.debug = vbSpineObject.debug;
-        //     }
-        //     else {
-        //         this.debug = new SpineDebugRenderer();
-        //     }
-        //     return;
-        //}
-
-        if (!en) {
-            // renderer already exists, turn it off.
-            (<any>this).debug = undefined;
+    constructDebugRenderer(shared = true) {
+        if (this.debug === undefined) {
+            if (shared) {
+                this.debug = vbSpineObject.debug;
+            }
+            else {
+                this.debug = new SpineDebugRenderer();
+            }
+            return;
         }
     }
 }

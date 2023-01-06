@@ -40,12 +40,13 @@ export function load_jsons(filenames: string[]) {
 }
 
 
-var _custom_add_assets_fn = (loader: PIXI.Loader, assets: any) => {};
+// eslint-disable-next-line
+var _custom_add_assets_fn = (loader: PIXI.Loader, assets: AssetList) => {};
 /**
  * Here you can write a custom function to add additional assets that loader should load, \
  * probably for project specific use.
  */
-export function customLoaderAddAssets(fn: (loader: PIXI.Loader, assets: any) => void) {
+export function customLoaderAddAssets(fn: (loader: PIXI.Loader, assets: AssetList) => void) {
     _custom_add_assets_fn = fn;
 }
 

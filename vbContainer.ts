@@ -1,24 +1,47 @@
 import * as PIXI from 'pixi.js';
+import vbTweenGroup from './third-party/vbTweenGroup';
 import type { ContainerStyleItem, StyleList } from './core/vbStyle';
-import type { LocalizationTable, vbLocalizedObject } from './core/vbLocalization';
+import type { LocalizedDictionary, TextStyleList, vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, type Size2, setPivotRule } from './core/vbTransform';
 import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
-import { vbTweenMap } from './vbTween';
 
 
 /**
+ * Bare minimum empty container that only has `addObj` method,
+ * used for simple objects that don't need to recursive apply style or localization to children.
+ */
+export class vbMinimalContainer extends vbGraphicObjectBase(PIXI.Container) {
+    addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
+        if (!isNaN(layer)) {
+            vbObj.layer = layer;
+        }
+        if (name != '') {
+            vbObj.name = name;
+        }
+        this.addChild(vbObj);
+        return this;
+    }
+
+    removeObj(vbObj: vbGraphicObject) {
+        this.removeChild(vbObj);
+    }
+}
+
+/**
+ * Recursively update children, apply style and localize.
+ * 
  * As is discussed at @see vbGraphicObject.debugBox, `width` and `height` can be dynamically changed, \
  * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
-export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
+export class vbContainer extends vbMinimalContainer {
     /** "Send to Back" layer */
     static readonly minLayer = -9999;
     /** "Bring to Front" layer */
     static readonly maxLayer = 9999;
 
-    tweens = new vbTweenMap();
+    tweens = new vbTweenGroup();
     /**
      * Desired size
      * @note [Can be used for type check]
@@ -34,6 +57,7 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         if (desiredWidth !== undefined && desiredHeight !== undefined) {
             this.setDesiredSize(desiredWidth, desiredHeight);
         }
+        this.isNestedStyle = false;
     }
 
     /**
@@ -52,10 +76,10 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         setPivotRule(this, this._pivotRule, this.desz.width, this.desz.height);
         // If there's a debugBox, redraw with new size
         if (this._debugBox !== undefined) {
-            this._debugBox.clear();
             let rect = new PIXI.Rectangle(0, 0, this.desz.width, this.desz.height);
-            let fillStyle = (<any>this.constructor)._debugFillStyle;
-            let lineStyle = (<any>this.constructor)._debugLineStyle;
+            let fillStyle = Object.getPrototypeOf(this).constructor._debugFillStyle;
+            let lineStyle = Object.getPrototypeOf(this).constructor._debugLineStyle;
+            this._debugBox.clear();
             this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);
         }
     }
@@ -66,20 +90,9 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         setPivotRule(this, rule, this.desz.width, this.desz.height);
     }
 
-    addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
-        if (!isNaN(layer)) {
-            vbObj.layer = layer;
-        }
-        if (name != '') {
-            vbObj.name = name;
-        }
-        this.addChild(vbObj);
-        return this;
-    }
-
     /**
      * Try to recursively apply style and localization as well.
-     * Usually it's only used when adding objects to root container.
+     * Usually it's only used when adding objects to root container. @see `vbSceneTransition`
      */
     addObjWithConfig(vbObj: vbGraphicObject) {
         let style = globalThis.pgame.currStyle.list;
@@ -91,18 +104,14 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
         // try to localize
         let locObj = <vbLocalizedObject>vbObj;
         if (locObj.localize !== undefined)
-            locObj.localize(table, table.styles[locObj.name]);
+            locObj.localize(table.dict, table.styles[locObj.name]);
         // try to apply recursively
         let container = <vbContainer>vbObj;
         if (container.desz !== undefined) {
             container.applyChildrenStyle(style);
-            container.localizeChildren(table);
+            container.localizeChildren(table.dict, table.styles);
         }
         this.addChild(vbObj);
-    }
-
-    removeObj(vbObj: vbGraphicObject) {
-        this.removeChild(vbObj);
     }
 
     sendObjToBack(vbObj: vbGraphicObject) {
@@ -149,33 +158,85 @@ export class vbContainer extends vbGraphicObjectBase(PIXI.Container) {
     /**
      * Recursively apply style to all the children.
      */
-    applyChildrenStyle(style: StyleList) {
+    // eslint-disable-next-line
+    applyChildrenStyle(style: StyleList) { }
+
+    /**
+     * Recursively set language to all localized objects.
+     */
+    // eslint-disable-next-line
+    localizeChildren(dict: LocalizedDictionary, styles: TextStyleList) { }
+
+    /**
+     * Style item of a container can also be nested style list
+     */
+    get isNestedStyle() {
+        return this.applyChildrenStyle === this._applyNestedStyle;
+    }
+    set isNestedStyle(en: boolean) {
+        if (en) {
+            this.applyChildrenStyle = this._applyNestedStyle;
+            this.localizeChildren = this._localizeChildren;
+        }
+        else {
+            this.applyChildrenStyle = this._applyChildrenStyle;
+            this.localizeChildren = this._localizeChildrenNested;
+        }
+    }
+
+    protected _applyChildrenStyle(style: StyleList) {
         for (let obj of this.children) {
             let vbObj = <vbGraphicObject>obj;
             if (vbObj.applyStyle === undefined) continue;
 
             let item = style[vbObj.name];
             if (item !== undefined)
-                vbObj.applyStyle(style[vbObj.name]);
+                vbObj.applyStyle(item);
 
             let container = <vbContainer>obj;
             if (container.desz === undefined) continue;
             container.applyChildrenStyle(style);
         }
     }
-
-    /**
-     * Recursively set language to all localized objects.
-     */
-    localizeChildren(table: LocalizationTable) {
+    protected _applyNestedStyle(style: StyleList) {
+        const nestedList = <StyleList>style[this.name];
+        if (nestedList === undefined) return;
         for (let obj of this.children) {
-            let locObj = <vbLocalizedObject>obj;
-            if (locObj.localize !== undefined)
-                locObj.localize(table, table.styles[locObj.name]);
+            let vbObj = <vbGraphicObject>obj;
+            if (vbObj.applyStyle === undefined) continue;
+
+            let item = nestedList[vbObj.name];
+            if (item !== undefined)
+                vbObj.applyStyle(item);
 
             let container = <vbContainer>obj;
             if (container.desz === undefined) continue;
-            container.localizeChildren(table);
+            container.applyChildrenStyle(nestedList);
+        }
+    }
+
+    protected _localizeChildren(dict: LocalizedDictionary, styles: TextStyleList) {
+        for (let obj of this.children) {
+            let locObj = <vbLocalizedObject>obj;
+            if (locObj.localize !== undefined)
+                locObj.localize(dict, styles[locObj.name]);
+
+            let container = <vbContainer>obj;
+            if (container.desz === undefined) continue;
+            container.localizeChildren(dict, styles);
+        }
+    }
+    protected _localizeChildrenNested(dict: LocalizedDictionary, styles: TextStyleList) {
+        let nestedList = <TextStyleList>styles[this.name];
+        if (nestedList === undefined) nestedList = {};
+        for (let obj of this.children) {
+            let locObj = <vbLocalizedObject>obj;
+            if (locObj.localize !== undefined)
+                locObj.localize(dict, nestedList[locObj.name]);
+
+            let container = <vbContainer>obj;
+            if (container.desz === undefined) continue;
+            container.localizeChildren(dict, nestedList);
         }
     }
 

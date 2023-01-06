@@ -10,17 +10,12 @@ import { get_SpineMap, get_localeMap, get_multipack_sequenceMap, get_styleMap, g
 import { vbContainer } from './vbContainer';
 import { vbInteractionManager } from './core/vbInteraction';
 import { vbPrimitive, vbRectangle } from './renderable/vbPrimitive';
+import type { vbScene } from './core/vbScene';
 import { vbSoundManager, vbSoundManagerInstance } from './misc/vbSound';
 import type { vbState } from './core/vbState';
-import { vbTimer, vbTimerManager } from './vbTimer';
+import { vbTimer, vbTimerManager } from './third-party/vbTimer';
 
 
-type StateMap = { [stateName: string]: vbState };
-type StyleMap = { [name: string]: StyleTable };
-type TextureMap = { [name: string]: PIXI.Texture };
-type SequenceMap = { [name: string]: PIXI.Texture[] };
-type SpineMap = { [name: string]: SpineData };
-type LocaleMap = { [code: string]: LocalizationTable };
 /**
  * Has the main PixiJS application,
  * managing all the assets, states, etc...
@@ -42,21 +37,25 @@ export abstract class vbGame extends PIXI.Application {
      * everytime when the desiredResolution has changed, (style change, etc.) \
      * And also can be added to window event listener.
      */
-    resizeAppFn = (contentWidth: number, contentHeight: number) => {};
+    // eslint-disable-next-line
+    resizeAppFn(contentWidth: number, contentHeight: number) {}
 
     /** current state */
     currState = {} as vbState;
-    protected _states: StateMap = {};
+    protected _states: Record<string, vbState> = {};
     /** current style */
     currStyle = {} as StyleTable;
-    protected _styles: StyleMap = {};
+    protected _styles: Record<string, StyleTable> = {};
     /** current locale */
     currLocale = {} as LocalizationTable;
-    protected _locales: LocaleMap = {};
+    protected _locales: Record<string, LocalizationTable> = {};
+    /** current scene */
+    currScene = {} as vbScene;
+    protected _scenes: Record<string, vbScene> = {};
 
-    protected _textures: TextureMap = {};
-    protected _sequences: SequenceMap = {};
-    protected _spines: SpineMap = {};
+    protected _textures: Record<string, PIXI.Texture> = {};
+    protected _sequences: Record<string, PIXI.Texture[]> = {};
+    protected _spines: Record<string, SpineData> = {};
     sounds = {} as vbSoundManager;
 
     /**
@@ -94,6 +93,7 @@ export abstract class vbGame extends PIXI.Application {
         this._locales = get_localeMap(loader, assets);
     }
 
+    // eslint-disable-next-line
     mainLoop(deltaFrame: number) { }
 
     startLoop() {
@@ -138,7 +138,7 @@ export abstract class vbGame extends PIXI.Application {
     }
 
     applyCurrentLocale() {
-        this.stage.localizeChildren(this.currLocale);
+        this.stage.localizeChildren(this.currLocale.dict, this.currLocale.styles);
     }
 
     addState(state: vbState) {
@@ -146,7 +146,7 @@ export abstract class vbGame extends PIXI.Application {
     }
     getState(stateName: STYPE) {
         const r = this._states[stateName];
-        if (r === undefined) throw ReferenceError(`Cannot find state ${stateName}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find state ${stateName}`);
         return r;
     }
     setState(stateName: STYPE) {
@@ -154,7 +154,7 @@ export abstract class vbGame extends PIXI.Application {
     }
     getStyle(name: string) {
         const r = this._styles[name];
-        if (r === undefined) throw ReferenceError(`Cannot find style ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find style ${name}`);
         return r;
     }
     setStyle(name: string) {
@@ -162,26 +162,37 @@ export abstract class vbGame extends PIXI.Application {
     }
     getLocale(code: string) {
         const r = this._locales[code];
-        if (r === undefined) throw ReferenceError(`Cannot find locale ${code}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find locale ${code}`);
         return r;
     }
     setLocale(code: string) {
         this.currLocale = this.getLocale(code);
     }
 
+    getScene(name: string) {
+        const r = this._scenes[name];
+        if (r === undefined) throw new ReferenceError(`Cannot find scene ${name}`);
+        return r;
+    }
+    addScenes(...scenes: vbScene[]) {
+        for (const scene of scenes) {
+            this._scenes[scene.name] = scene;
+        }
+    }
+
     getTex(name: string) {
         const r = this._textures[name];
-        if (r === undefined) throw ReferenceError(`Cannot find texture ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find texture ${name}`);
         return r;
     }
     getSeq(name: string) {
         const r = this._sequences[name];
-        if (r === undefined) throw ReferenceError(`Cannot find sequence ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find sequence ${name}`);
         return r;
     }
     getSpine(name: string) {
         const r = this._spines[name];
-        if (r === undefined) throw ReferenceError(`Cannot find spine ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find spine ${name}`);
         return r;
     }
 

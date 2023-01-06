@@ -1,8 +1,12 @@
+import * as PIXI from 'pixi.js';
 import type { STYPE } from '@g/states/StateTypes';
-import { vbTimer, vbTimerManager } from '../vbTimer';
+import { vbTimer, vbTimerManager } from '@vb/third-party/vbTimer';
 
 
-export class vbState {
+/**
+ * State is also an event emitter so each state can behave differently for the same event.
+ */
+export class vbState extends PIXI.utils.EventEmitter<string> {
     protected _firstIn = true;
     protected _firstOut = true;
     protected _canExit = false;
@@ -11,6 +15,7 @@ export class vbState {
     timers: vbTimerManager;
 
     constructor(stateName: STYPE) {
+        super();
         this._name = stateName;
         this._nextState = '';
         this.timers = new vbTimerManager();
@@ -19,6 +24,7 @@ export class vbState {
     get name() { return this._name; }
 
     enter() {}
+    // eslint-disable-next-line
     update(deltaFrame: number) {}
 
     /**

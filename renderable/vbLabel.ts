@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import type { LocalizationTable, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
+import type { LocalizedDictionary, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
 import { PivotPoint, setPivotRule } from '@vb/core/vbTransform';
 import type { vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
@@ -15,7 +15,7 @@ import type { vbTextInitOptions } from './vbText';
  * NOTE: The names of vbLabel object and its `txt` member variable should be the same
  * in order to properly get the localization.
  */
- export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLocalizedObject {
+export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLocalizedObject {
     bg: T;
     txt = {} as vbText;
 
@@ -35,31 +35,35 @@ import type { vbTextInitOptions } from './vbText';
     }
 
     /**
-     * Add a default style text object at the center of graphic object `bg`. \
+     * Add a text object at the center of graphic object `bg`. \
      * Set vbLabel object's name by text's name.
      */
-    addDefaultTxt(options: vbTextInitOptions) {
+    addCenteredTxt(options: vbTextInitOptions, offsetX=0, offsetY=0) {
         this.txt = new vbText(options);
         this.txt.layer = 1;
-        this.txt.pivotRule = PivotPoint.Center;
-        this.txt.position.set(this.bg.width/2, this.bg.height/2);
+        this.centerTxt(offsetX, offsetY);
         this.addChild(this.txt);
         // sync name
         this.name = this.txt.name;
     }
 
-    addTxtObj(obj: vbText) {
-        if (this.txt !== undefined) {
+    centerTxt(offsetX=0, offsetY=0) {
+        this.txt.pivotRule = PivotPoint.Center;
+        this.txt.position.set(this.bg.width/2 + offsetX, this.bg.height/2 + offsetY);
+    }
+
+    addTxtObj(options: vbTextInitOptions) {
+        if (this.txt.applyStyle !== undefined) {
             this.removeChild(this.txt);
             this.txt.destroy();
         }
-        this.txt = obj;
+        this.txt = new vbText(options);
         this.addChild(this.txt);
         // sync name
         this.name = this.txt.name;
     }
 
-    setTxt(s: string) {
+    setTxt(s: string | number) {
         this.txt.text = s;
     }
 
@@ -76,8 +80,8 @@ import type { vbTextInitOptions } from './vbText';
         this.txt.update(deltaFrame);
     }
 
-    localize(table: LocalizationTable, item?: TextStyleItem) {
-        this.txt.localize(table, item);
+    localize(dict: LocalizedDictionary, item?: TextStyleItem) {
+        this.txt.localize(dict, item);
     }
 }
 

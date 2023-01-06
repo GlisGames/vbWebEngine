@@ -3,14 +3,13 @@ import type { vbGraphicObject } from '@vb/vbGraphicObject';
 
 
 /**
- * The scene itself is fairly easy: it holds all object references
- * so that you can get them by global singleton.
+ * Scene holds a list of objects which their index represents the layer
  */
 export class vbScene {
     protected _name: string;
     vbObjs: vbGraphicObject[];
 
-    constructor(name: string, objects: { [varName: string]: vbGraphicObject }) {
+    constructor(name: string, objects: vbGraphicObject[]) {
         this._name = name;
         this.vbObjs = Object.values(objects);
     }
@@ -25,46 +24,63 @@ export class vbScene {
  */
 export class vbSceneTransition {
     rootStage: vbContainer;
-    fromDiffObjs: vbGraphicObject[];
-    toDiffObjs: vbGraphicObject[];
+    toScene: vbScene;
+    fromDiffObjs: vbGraphicObject[] = [];
+    toDiffObjs: vbGraphicObject[] = [];
 
-    constructor(rootStage: vbContainer, from: vbScene | null, to: vbScene) {
-        this.rootStage = rootStage;
-        this.fromDiffObjs = [];
-        this.toDiffObjs = [];
+    constructor(from: string | null, to: string) {
+        this.rootStage = globalThis.pgame.stage;
+        this.toScene = globalThis.pgame.getScene(to);
+        this._calcDiff(from);
+    }
+
+    protected _calcDiff(from: string | null) {
         if (from !== null) {
-            for (let fromObj of from.vbObjs) {
-                if (to.vbObjs.includes(fromObj))
+            const fromScene = globalThis.pgame.getScene(from);
+            for (const fromObj of fromScene.vbObjs) {
+                if (this.toScene.vbObjs.includes(fromObj))
                     continue;
                 else
                     this.fromDiffObjs.push(fromObj);
             }
-            for (let toObj of to.vbObjs) {
-                if (from.vbObjs.includes(toObj))
+            for (const toObj of this.toScene.vbObjs) {
+                if (fromScene.vbObjs.includes(toObj))
                     continue;
                 else
                     this.toDiffObjs.push(toObj);
             }
         }
         else {
-            this.toDiffObjs = to.vbObjs;
+            this.toDiffObjs = this.toScene.vbObjs;
         }
     }
 
-    enter() {
-        for (let vbObj of this.toDiffObjs) {
+    /**
+     * Add objects that don't exist on the current scene
+     */
+    enterNextScene() {
+        for (const vbObj of this.toDiffObjs) {
             this.rootStage.addObjWithConfig(vbObj);
         }
-    }
-
-    exit() {
-        for (let vbObj of this.fromDiffObjs) {
-            this.rootStage.removeObj(vbObj);
+        // change layers...
+        for (let i of Array.range(this.toScene.vbObjs.length)) {
+            const vbObj = this.toScene.vbObjs[i];
+            vbObj.layer = i;
         }
     }
 
-    start() {
-        this.exit();
-        this.enter();
+    /**
+     * Remove objects that don't exist on the next scene
+     */
+    exitCurrScene() {
+        for (const vbObj of this.fromDiffObjs) {
+            this.rootStage.removeObj(vbObj);
+        }
+        globalThis.pgame.currScene = this.toScene;
+    }
+
+    transit() {
+        this.exitCurrScene();
+        this.enterNextScene();
     }
 }

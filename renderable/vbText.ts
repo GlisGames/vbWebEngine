@@ -1,6 +1,6 @@
 /** https://pixijs.io/pixi-text-style/# */
 import * as PIXI from 'pixi.js';
-import type { LocalizationTable, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
+import type { LocalizedDictionary, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
 import { c } from '@vb/misc/vbShared';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
@@ -47,7 +47,7 @@ export type vbTextInitOptions = {
 /**
  * Text With localization support
  */
- export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLocalizedObject {
+export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLocalizedObject {
     protected _key = '';
     protected _useDefaultFont: boolean;
 
@@ -148,8 +148,8 @@ export type vbTextInitOptions = {
         return fmt.mapReplace(replaceMap);
     }
 
-    localize(table: LocalizationTable, item?: TextStyleItem) {
-        let text = <string>table.dict[this._key];
+    localize(dict: LocalizedDictionary, item?: TextStyleItem) {
+        let text = <string>dict[this._key];
         if (text !== undefined)
             this.text = text;
 

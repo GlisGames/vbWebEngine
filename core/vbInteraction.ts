@@ -4,8 +4,8 @@ import type { TypeCons } from '@vb/vbGraphicObject';
 import { isMobile } from '@vb/misc/WebUtils';
 import type { vbContainer } from '@vb/vbContainer';
 import { vbGraphicObject } from '@vb/vbGraphicObject';
-import { vbTimer } from '@vb/vbTimer';
-import type { vbTimerManager } from '@vb/vbTimer';
+import { vbTimer } from '@vb/third-party/vbTimer';
+import type { vbTimerManager } from '@vb/third-party/vbTimer';
 
 
 export type InteractionFn = (e: PIXI.InteractionEvent) => void;
@@ -202,7 +202,7 @@ export class vbInteractionManager {
         const wrappedEnterFn = (e: PIXI.InteractionEvent) => {
             enterFn(e);
             btn.setOnClick(false);
-            this._delayEnableExit.restart();
+            this._delayEnableExit.start(true);
         }
 
         const wrappedExitFn = (e: PIXI.InteractionEvent) => {
@@ -213,7 +213,7 @@ export class vbInteractionManager {
 
             exitFn(e);
             globalThis.pgame.stage.off('pointertap', wrappedExitFn);
-            this._delayEnableClick.restart();
+            this._delayEnableClick.start(true);
         }
 
         // take a short delay when player open or close the object to avoid immediate re-enter.
