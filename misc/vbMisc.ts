@@ -7,7 +7,6 @@
 export * from './vbUtils';
 export * from './vbNumberFormat';
 
-export type { Pos2, Size2 } from '@vb/core/vbTransform';
 export type { AssetList } from './vbLoader';
 export type { SpineData } from '@vb/renderable/vbSpineObject';
 export type {

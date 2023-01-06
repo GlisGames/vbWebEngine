@@ -146,7 +146,7 @@ export abstract class vbGame extends PIXI.Application {
     }
     getState(stateName: STYPE) {
         const r = this._states[stateName];
-        if (r === undefined) throw ReferenceError(`Cannot find state ${stateName}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find state ${stateName}`);
         return r;
     }
     setState(stateName: STYPE) {
@@ -154,7 +154,7 @@ export abstract class vbGame extends PIXI.Application {
     }
     getStyle(name: string) {
         const r = this._styles[name];
-        if (r === undefined) throw ReferenceError(`Cannot find style ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find style ${name}`);
         return r;
     }
     setStyle(name: string) {
@@ -162,7 +162,7 @@ export abstract class vbGame extends PIXI.Application {
     }
     getLocale(code: string) {
         const r = this._locales[code];
-        if (r === undefined) throw ReferenceError(`Cannot find locale ${code}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find locale ${code}`);
         return r;
     }
     setLocale(code: string) {
@@ -171,7 +171,7 @@ export abstract class vbGame extends PIXI.Application {
 
     getScene(name: string) {
         const r = this._scenes[name];
-        if (r === undefined) throw ReferenceError(`Cannot find scene ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find scene ${name}`);
         return r;
     }
     addScenes(...scenes: vbScene[]) {
@@ -182,17 +182,17 @@ export abstract class vbGame extends PIXI.Application {
 
     getTex(name: string) {
         const r = this._textures[name];
-        if (r === undefined) throw ReferenceError(`Cannot find texture ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find texture ${name}`);
         return r;
     }
     getSeq(name: string) {
         const r = this._sequences[name];
-        if (r === undefined) throw ReferenceError(`Cannot find sequence ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find sequence ${name}`);
         return r;
     }
     getSpine(name: string) {
         const r = this._spines[name];
-        if (r === undefined) throw ReferenceError(`Cannot find spine ${name}`);
+        if (r === undefined) throw new ReferenceError(`Cannot find spine ${name}`);
         return r;
     }
 
