@@ -21,15 +21,15 @@ class vbTweenGroup {
         const tw = new vbTween(name, obj, this).to(to, duration)
         // eslint-disable-next-line
         this.add(<any>tw)
-        return tw;
+        return tw
     }
     // eslint-disable-next-line
     getByName(name: string): vbTween<any> | undefined {
-        return this._twMap?.get(name);
+        return this._twMap?.get(name)
     }
     size() {
-        if (this._twMap === undefined) return 0;
-        else return this._twMap.size;
+        if (this._twMap === undefined) return 0
+        else return this._twMap.size
     }
 
     add(tween: vbTween<UnknownProps>): void {
@@ -42,8 +42,8 @@ class vbTweenGroup {
     }
 
     remove(tween: vbTween<UnknownProps>): void {
-        this._twMap?.delete(tween.name);
-        this._tweensAddedDuringUpdate?.delete(tween.name);
+        this._twMap?.delete(tween.name)
+        this._tweensAddedDuringUpdate?.delete(tween.name)
     }
 
     getAll(): vbTween<UnknownProps>[] {
@@ -56,12 +56,11 @@ class vbTweenGroup {
         this._tweensAddedDuringUpdate?.clear()
     }
     endAll(): void {
-        this.update(Infinity);
+        this.update(Infinity)
     }
 
     update(time: number): void {
-        if (this._twMap === undefined || this._tweensAddedDuringUpdate === undefined) return
-        if (this._twMap.size == 0) return
+        if (this._twMap === undefined || this._twMap.size == 0 || this._tweensAddedDuringUpdate === undefined) return
 
         let tweenIds = [...this._twMap.keys()]
         // Tweens are updated in "batches". If you add a new tween during an
@@ -74,9 +73,27 @@ class vbTweenGroup {
 
             for (const name of tweenIds) {
                 const tween = this._twMap.get(name)
-                if (tween === undefined) continue
-                if (tween.isEnded() || tween.update(time) === false) {
+                if (tween !== undefined && tween.update(time) === false) {
                     this._twMap.delete(tween.name)
+                }
+            }
+
+            tweenIds = [...this._tweensAddedDuringUpdate.keys()]
+        }
+    }
+
+    updateTillEnd(): void {
+        if (this._twMap === undefined || this._twMap.size == 0 || this._tweensAddedDuringUpdate === undefined) return
+
+        let tweenIds = [...this._twMap.keys()]
+        while (tweenIds.length > 0) {
+            this._tweensAddedDuringUpdate.clear()
+
+            for (const name of tweenIds) {
+                const tween = this._twMap.get(name)
+                if (tween !== undefined) {
+                    tween.updateTillEnd()
+                    this._twMap.delete(tween.name)    
                 }
             }
 

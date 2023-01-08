@@ -27,7 +27,6 @@ class vbTween<T extends UnknownProps> {
     protected _pauseStart = 0
     protected _yoyo = false
     protected _reversed = false
-    protected _goToEnd = false
 
     protected _easingFunction: EasingFunction = Easing.Linear.None
     protected _interpolationFunction: InterpolationFunction = Interpolation.Linear
@@ -41,7 +40,7 @@ class vbTween<T extends UnknownProps> {
     protected _onEveryStartCallbackFired = false
     protected _onUpdateCallback?: (object: T, elapsed: number) => void
     protected _onRepeatCallback?: (object: T) => void
-    protected _onEndCallbacks: ((object: T) => void)[] = [];
+    protected _onEndCallbacks: ((object: T) => void)[] = []
     protected _onStopCallback?: (object: T) => void
 
     constructor(name: string, obj: T, group: vbTweenGroup | false) {
@@ -51,16 +50,13 @@ class vbTween<T extends UnknownProps> {
     }
 
     get name() {
-        return this._name;
+        return this._name
     }
     isPlaying(): boolean {
         return this._isPlaying
     }
     isPaused(): boolean {
         return this._isPaused
-    }
-    isEnded(): boolean {
-        return this._goToEnd
     }
 
     to(properties: UnknownProps, duration=1000): this {
@@ -139,11 +135,12 @@ class vbTween<T extends UnknownProps> {
      * `end()` make sure to update values to the end.
      */
     end(): this {
-        this._goToEnd = true
-        this.update(Infinity)
+        this.updateTillEnd()
+        // eslint-disable-next-line
+        this._group && this._group.remove(this as any)
         return this
     }
-
+    
     pause(time=performance.now()): this {
         if (this._isPaused || !this._isPlaying) {
             return this
@@ -156,9 +153,12 @@ class vbTween<T extends UnknownProps> {
         return this
     }
 
+    /**
+     * If it's neither paused nor playing, start the tween instead
+     */
     resume(time=performance.now()): this {
         if (!this._isPaused || !this._isPlaying) {
-            return this
+            return this.start(false, time);
         }
         this._isPaused = false
         this._startTime += time - this._pauseStart
@@ -267,15 +267,8 @@ class vbTween<T extends UnknownProps> {
      */
     update(time: number): boolean {
         if (this._isPaused) return true
+        if (!this._isPlaying) return false
 
-        let property
-        let elapsed
-
-        const endTime = this._startTime + this._duration
-
-        if (!this._goToEnd && !this._isPlaying) {
-            if (time > endTime) return false
-        }
         if (time < this._startTime) {
             return true
         }
@@ -294,11 +287,10 @@ class vbTween<T extends UnknownProps> {
             this._onEveryStartCallbackFired = true
         }
 
-        elapsed = (time - this._startTime) / this._duration
+        let elapsed = (time - this._startTime) / this._duration
         elapsed = this._duration === 0 || elapsed > 1 ? 1 : elapsed
 
         const value = this._easingFunction(elapsed)
-
         // properties transformations
         this._updateProperties(this._object, this._valuesStart, this._valuesEnd, value)
 
@@ -308,61 +300,101 @@ class vbTween<T extends UnknownProps> {
 
         if (elapsed === 1) {
             if (this._repeat > 0) {
-                if (isFinite(this._repeat)) {
-                    this._repeat--
-                }
-
-                // Reassign starting values, restart by making startTime = now
-                for (property in this._valuesStartRepeat) {
-                    if (!this._yoyo && typeof this._valuesEnd[property] === 'string') {
-                        this._valuesStartRepeat[property] =
-                            // eslint-disable-next-line
-                            // @ts-ignore FIXME?
-                            this._valuesStartRepeat[property] + parseFloat(this._valuesEnd[property])
-                    }
-
-                    if (this._yoyo) {
-                        this._swapEndStartRepeatValues(property)
-                    }
-
-                    this._valuesStart[property] = this._valuesStartRepeat[property]
-                }
-
-                if (this._yoyo) {
-                    this._reversed = !this._reversed
-                }
-
-                if (this._repeatDelayTime !== undefined) {
-                    this._startTime = time + this._repeatDelayTime
-                } else {
-                    // this._startTime = time + this._delayTime
-                    this._startTime = time
-                }
-
-                if (this._onRepeatCallback) {
-                    this._onRepeatCallback(this._object)
-                }
-
-                this._onEveryStartCallbackFired = false
-
-                return true
-            } else {
+                return this._handleRepeatEnd(time)
+            }
+            else {
                 this._isPlaying = false
-
-                for (const callback of this._onEndCallbacks) {
-                    callback(this._object)
-                }
-                for (let i = 0, numChainedTweens = this._chainedTweens.length; i < numChainedTweens; i++) {
-                    // Make the chained tweens start exactly at the time they should,
-                    // even if the `update()` method was called way past the duration of the tween
-                    this._chainedTweens[i].start(false, this._startTime + this._duration)
-                }
-
-                // callback may trigger a restart
-                return this._isPlaying
+                return this._handleEndPlaying()
             }
         }
         return true
+    }
+
+    protected _handleRepeatEnd(time: number) {
+        if (isFinite(this._repeat)) {
+            this._repeat--
+        }
+
+        // Reassign starting values, restart by making startTime = now
+        for (const property in this._valuesStartRepeat) {
+            if (!this._yoyo && typeof this._valuesEnd[property] === 'string') {
+                this._valuesStartRepeat[property] =
+                    // eslint-disable-next-line
+                    // @ts-ignore FIXME?
+                    this._valuesStartRepeat[property] + parseFloat(this._valuesEnd[property])
+            }
+
+            if (this._yoyo) {
+                this._swapEndStartRepeatValues(property)
+            }
+
+            this._valuesStart[property] = this._valuesStartRepeat[property]
+        }
+
+        if (this._yoyo) {
+            this._reversed = !this._reversed
+        }
+
+        if (this._repeatDelayTime !== undefined) {
+            this._startTime = time + this._repeatDelayTime
+        } else {
+            // this._startTime = time + this._delayTime
+            this._startTime = time
+        }
+
+        if (this._onRepeatCallback) {
+            this._onRepeatCallback(this._object)
+        }
+
+        this._onEveryStartCallbackFired = false
+
+        return true
+    }
+
+    protected _handleEndPlaying() {
+        for (const callback of this._onEndCallbacks) {
+            callback(this._object)
+        }
+        for (let i = 0, numChainedTweens = this._chainedTweens.length; i < numChainedTweens; i++) {
+            // Make the chained tweens start exactly at the time they should,
+            // even if the `update()` method was called way past the duration of the tween
+            this._chainedTweens[i].start(false, this._startTime + this._duration)
+        }
+
+        // callback may trigger a restart
+        return this._isPlaying
+    }
+
+    updateTillEnd() {
+        if (this._onStartCallbackFired === false) {
+            if (this._onStartCallback) {
+                this._onStartCallback(this._object)
+            }
+            this._onStartCallbackFired = true
+        }
+
+        if (this._onEveryStartCallbackFired === false) {
+            if (this._onEveryStartCallback) {
+                this._onEveryStartCallback(this._object)
+            }
+            this._onEveryStartCallbackFired = true
+        }
+
+        if (this._yoyo && !this._reversed) {
+            // yoyo tweens should go back to the start point
+            this._updateProperties(this._object, this._valuesEnd, this._valuesStart, 1)
+        }
+        else {
+            this._updateProperties(this._object, this._valuesStart, this._valuesEnd, 1)
+        }
+
+        if (this._onUpdateCallback) {
+            this._onUpdateCallback(this._object, 1)
+        }
+
+        this._handleEndPlaying()
+        this._isPlaying = false
+        return false
     }
 
     protected _setupProperties(
