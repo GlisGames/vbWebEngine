@@ -207,6 +207,7 @@ export function assignPosBatch(target: RecursivePositions, source: RecursivePosi
     for (const key in target) {
         const targetObj = target[key];
         const sourceObj = source[key];
+        if (sourceObj === undefined) continue;
         if (targetObj.x === undefined || targetObj.y === undefined)
             assignPosBatch(<RecursivePositions>targetObj, <RecursivePositions>sourceObj);
         else
