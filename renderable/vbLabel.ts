@@ -1,9 +1,10 @@
 import * as PIXI from 'pixi.js';
 import type { LocalizedDictionary, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
 import { PivotPoint, setPivotRule } from '@vb/core/vbTransform';
+import { c } from '@vb/misc/vbShared';
 import type { vbGraphicObject } from '@vb/vbGraphicObject';
-import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 import { vbImage } from './vbImage';
+import { vbMinimalContainer } from '@vb/vbContainer';
 import { vbPrimitive, vbShape } from './vbPrimitive';
 import { vbText } from './vbText';
 import type { vbTextInitOptions } from './vbText';
@@ -15,23 +16,20 @@ import type { vbTextInitOptions } from './vbText';
  * NOTE: The names of vbLabel object and its `txt` member variable should be the same
  * in order to properly get the localization.
  */
-export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI.Container) implements vbLocalizedObject {
+export class vbLabel<T extends vbGraphicObject> extends vbMinimalContainer implements vbLocalizedObject {
     bg: T;
     txt = {} as vbText;
 
     constructor(bg: T) {
         super();
-        this.sortableChildren = true;
         this.bg = bg;
-        this.bg.layer = 0;
-        // this.bg.pivotRule = PivotPoint.Center;
-        this.addChild(bg);
+        this.addObj(bg, 0);
     }
 
     get pivotRule() { return this._pivotRule; }
     set pivotRule(rule: PivotPoint) {
         this._pivotRule = rule;
-        setPivotRule(this, rule, this.bg.width, this.bg.height);
+        setPivotRule(this, rule, this.getUnscaledSize());
     }
 
     /**
@@ -40,9 +38,8 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
      */
     addCenteredTxt(options: vbTextInitOptions, offsetX=0, offsetY=0) {
         this.txt = new vbText(options);
-        this.txt.layer = 1;
         this.centerTxt(offsetX, offsetY);
-        this.addChild(this.txt);
+        this.addObj(this.txt, 1);
         // sync name
         this.name = this.txt.name;
     }
@@ -58,7 +55,7 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
             this.txt.destroy();
         }
         this.txt = new vbText(options);
-        this.addChild(this.txt);
+        this.addObj(this.txt, 1);
         // sync name
         this.name = this.txt.name;
     }
@@ -83,6 +80,10 @@ export class vbLabel<T extends vbGraphicObject> extends vbGraphicObjectBase(PIXI
     localize(dict: LocalizedDictionary, item?: TextStyleItem) {
         this.txt.localize(dict, item);
     }
+
+    protected static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
+        s.visible = true; s.color = c.Magneta; s.alpha = 1; s.width = 2; return s;
+    })();
 }
 
 

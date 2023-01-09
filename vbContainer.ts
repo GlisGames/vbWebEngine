@@ -27,6 +27,15 @@ export class vbMinimalContainer extends vbGraphicObjectBase(PIXI.Container) {
     removeObj(vbObj: vbGraphicObject) {
         this.removeChild(vbObj);
     }
+
+    /**
+     * Since `width` and `height` can be different when there are changes on children,
+     * and bare minimum container doesn't have a desired size, \
+     * we need to refresh the pivot point with new size.
+     */
+    refreshPivotPoint() {
+        this.pivotRule = this._pivotRule;
+    }
 }
 
 /**
@@ -50,9 +59,6 @@ export class vbContainer extends vbMinimalContainer {
 
     constructor(desiredWidth?: number, desiredHeight?: number) {
         super();
-        this._init(desiredWidth, desiredHeight);
-    }
-    protected _init(desiredWidth?: number, desiredHeight?: number) {
         this.sortableChildren = true;
         if (desiredWidth !== undefined && desiredHeight !== undefined) {
             this.setDesiredSize(desiredWidth, desiredHeight);
@@ -73,7 +79,7 @@ export class vbContainer extends vbMinimalContainer {
             this.desz.width = width;
             this.desz.height = height;
         }
-        setPivotRule(this, this._pivotRule, this.desz.width, this.desz.height);
+        setPivotRule(this, this._pivotRule, this.desz);
         // If there's a debugBox, redraw with new size
         if (this._debugBox !== undefined) {
             let rect = new PIXI.Rectangle(0, 0, this.desz.width, this.desz.height);
@@ -87,7 +93,7 @@ export class vbContainer extends vbMinimalContainer {
     get pivotRule() { return this._pivotRule; }
     set pivotRule(rule: PivotPoint) {
         this._pivotRule = rule;
-        setPivotRule(this, rule, this.desz.width, this.desz.height);
+        setPivotRule(this, rule, this.desz);
     }
 
     /**
@@ -254,7 +260,7 @@ export class vbContainer extends vbMinimalContainer {
         s.visible = true; s.color = c.White; s.alpha = 0.08; return s;
     })();
     static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
-        s.visible = true; s.color = c.Red; s.alpha = 1; s.width = 2; return s;
+        s.visible = true; s.color = c.Red; s.alpha = 1; s.width = 2.5; return s;
     })();
     /**
      * Show a debug rectangle with desiredSize
@@ -263,7 +269,7 @@ export class vbContainer extends vbMinimalContainer {
         return (this._debugBox !== undefined) && (this._debugBox.visible);
     }
     set debugBox(enable: boolean) {
-        this._showDebugBox(enable, this.desz.width, this.desz.height);
+        this._showDebugBox(enable, this.desz);
     }
 }
 

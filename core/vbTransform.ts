@@ -17,34 +17,34 @@ export enum PivotPoint {
     Custom
 }
 
-export function setPivotRule(obj: PIXI.Container, rule: PivotPoint, width: number, height: number) {
+export function setPivotRule(obj: PIXI.Container, rule: PivotPoint, size: Size2) {
     switch (rule) {
         case PivotPoint.TopLeft: {
             obj.pivot.set(0); break;
         }
         case PivotPoint.TopMiddle: {
-            obj.pivot.set(width/2, 0); break;
+            obj.pivot.set(size.width/2, 0); break;
         }
         case PivotPoint.TopRight: {
-            obj.pivot.set(width, 0); break;
+            obj.pivot.set(size.width, 0); break;
         }
         case PivotPoint.Center: {
-            obj.pivot.set(width/2, height/2); break;
+            obj.pivot.set(size.width/2, size.height/2); break;
         }
         case PivotPoint.MiddleLeft: {
-            obj.pivot.set(0, height/2); break;
+            obj.pivot.set(0, size.height/2); break;
         }
         case PivotPoint.MiddleRight: {
-            obj.pivot.set(width, height/2); break;
+            obj.pivot.set(size.width, size.height/2); break;
         }
         case PivotPoint.BottomLeft: {
-            obj.pivot.set(0, height); break;
+            obj.pivot.set(0, size.height); break;
         }
         case PivotPoint.BottomMiddle: {
-            obj.pivot.set(width/2, height); break;
+            obj.pivot.set(size.width/2, size.height); break;
         }
         case PivotPoint.BottomRight: {
-            obj.pivot.set(width, height); break;
+            obj.pivot.set(size.width, size.height); break;
         }
     }
 }

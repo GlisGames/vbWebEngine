@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as PIXI from 'pixi.js';
-import { PivotPoint, setPivotRule, setSpritePivotRule } from './core/vbTransform';
+import { PivotPoint, type Size2, setPivotRule, setSpritePivotRule } from './core/vbTransform';
 import type { StyleItem } from './core/vbStyle';
 import { c, m } from './misc/vbShared';
 import type { vbContainer } from './vbContainer';
@@ -46,7 +46,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
 
         /**
          * Pivot Rule affects positioning, scaling and roation. \
-         * If it's a regular object, the pivot is calculated by width and height. \
+         * If it's a regular object, the pivot is calculated by unscaled width and height. @see `vbGraphicObject.getUnscaledSize` \
          * If it's Container, the pivot is calculated by desiredSize, thus it should only be called when the size has been specified. \
          * If set to Custom, should call setCustomPivot \
          * Default Value: `TopLeft`
@@ -59,12 +59,20 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
                 // Since the sprite pivot rule only set the anchor
                 // we have to set pivot rule for debugBox as well or it won't be changed
                 if ((this._debugBox !== undefined) && this._debugBox.visible) {
-                    setPivotRule(this._debugBox, rule, this.width, this.height);
+                    setPivotRule(this._debugBox, rule, this);
                 }
             }
             else {
-                setPivotRule(this, rule, this.width, this.height);
+                setPivotRule(this, rule, this.getUnscaledSize());
             }
+        }
+
+        /**
+         * Unscaled width and height.
+         * (AKA `localBounds` in pixi.js. We use it because `width` and `height` properties are scaled relative to parent container)
+         */
+        getUnscaledSize(): Size2 {
+            return this.getLocalBounds(undefined, true);
         }
 
         /**
@@ -164,12 +172,12 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
             return (this._debugBox !== undefined) && (this._debugBox.visible);
         }
         set debugBox(enable: boolean) {
-            this._showDebugBox(enable, this.width, this.height);
+            this._showDebugBox(enable, this.getUnscaledSize());
         }
-        protected _showDebugBox(enable: boolean, width: number, height: number) {
+        protected _showDebugBox(enable: boolean, size: Size2) {
             if (enable) {
                 if (this._debugBox === undefined) {
-                    let rect = new PIXI.Rectangle(0, 0, width, height);
+                    let rect = new PIXI.Rectangle(0, 0, size.width, size.height);
                     // Access the static variable by instance.
                     let fillStyle = Object.getPrototypeOf(this).constructor._debugFillStyle;
                     let lineStyle = Object.getPrototypeOf(this).constructor._debugLineStyle;
@@ -181,7 +189,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
                 }
                 // update debugBox pivotRule
                 if (this instanceof PIXI.Sprite) {
-                    setPivotRule(this._debugBox, this._pivotRule, width, height);
+                    setPivotRule(this._debugBox, this._pivotRule, size);
                 }
                 this._debugBox.visible = true;
             }
