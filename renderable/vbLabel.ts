@@ -12,7 +12,7 @@ import type { vbTextInitOptions } from './vbText';
 
 /**
  * Label is based on an GraphicObject (preferably image or primitive?) with text, \
- * its localization support may change both the graphic object and the text. \
+ * its localization support may change both the text and the graphic object(?). \
  * NOTE: The names of vbLabel object and its `txt` member variable should be the same
  * in order to properly get the localization.
  */
@@ -64,12 +64,28 @@ export class vbLabel<T extends vbGraphicObject> extends vbMinimalContainer imple
         this.txt.text = s;
     }
 
+    /**
+     * Set the text fit box to width and height of `bg`, multiplied by ratio.
+     * (Default are all infinity)
+     * @param [reversed] Set `bg.height` to fit box `width`, vice versa.
+     */
+    setTxtFitBox(widthRatio=Infinity, heightRatio=Infinity, reversed=false) {
+        if (!reversed)
+            this.txt.setFitBox(this.bg.width * widthRatio, this.bg.height * heightRatio);
+        else
+            this.txt.setFitBox(this.bg.height * heightRatio, this.bg.width * widthRatio);
+    }
+
     setTxtStyle(style: Partial<PIXI.ITextStyle>) {
         Object.assign(this.txt.style, style);
     }
 
     setTxtKey(key: string) {
         this.txt.setKey(key);
+    }
+
+    setTxtKeyFormat(key: string, ...args: (string | number)[]) {
+        this.txt.setKeyFormat(key, ...args);
     }
 
     update(deltaFrame: number) {

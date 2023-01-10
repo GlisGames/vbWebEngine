@@ -51,7 +51,7 @@ export {
     vbPrimitive
 } from './renderable/vbPrimitive';
 
-export { vbText } from './renderable/vbText';
+export { vbText, TextFitType } from './renderable/vbText';
 export type { vbTextInitOptions } from './renderable/vbText';
 export {
     vbLabel,

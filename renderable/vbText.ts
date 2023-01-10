@@ -1,6 +1,7 @@
 /** https://pixijs.io/pixi-text-style/# */
 import * as PIXI from 'pixi.js';
 import type { LocalizedDictionary, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
+import type { Size2 } from '@vb/core/vbTransform';
 import { c } from '@vb/misc/vbShared';
 import { vbGraphicObjectBase } from '@vb/vbGraphicObject';
 
@@ -24,7 +25,7 @@ export type vbTextInitOptions = {
     weight?: PIXI.TextStyleFontWeight,
     /** font style */
     style?: PIXI.TextStyleFontStyle,
-    /** word wrap width (it's not the concept of "bounding box") */
+    /** word wrap width (it's not the concept of "bounding box" or "fit box") */
     width?: number,
     breakWords?: boolean,
     /** align only makes sense when there're multiple lines */
@@ -44,12 +45,20 @@ export type vbTextInitOptions = {
 }
 
 
+export enum TextFitType {
+    None,
+    Shrink
+}
+
+
 /**
  * Text With localization support
  */
 export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLocalizedObject {
     protected _key = '';
     protected _useDefaultFont: boolean;
+    protected _fitType = TextFitType.None;
+    fitBox: Size2 = { width:Infinity, height:Infinity };
 
     constructor(options: vbTextInitOptions) {
         let name = '';
@@ -118,6 +127,38 @@ export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLocalize
         return style;
     }
 
+    get text(): string { return super.text; }
+    set text(text: string | number) {
+        super.text = text;
+        this._fitScale();
+    }
+
+    /**
+     * Fit box adjusts the text scale using the rule of `fitType`.
+     * Default are all infinity.
+     */
+    setFitBox(width=Infinity, height=Infinity) {
+        this.fitBox.width = width;
+        this.fitBox.height = height;
+        this._fitScale();
+    }
+
+    get fitType() { return this._fitType; }
+    set fitType(value: TextFitType) {
+        this._fitType = value;
+        switch (value) {
+            case TextFitType.None:
+                this._fitScale = () => {}; break;
+            case TextFitType.Shrink:
+                this._fitScale = this._shrinkScale; break;
+        }
+        this._fitScale();
+    }
+
+    setTxtStyle(style: Partial<PIXI.ITextStyle>) {
+        Object.assign(this.style, style);
+    }
+
     /**
      * Set text using a key in localization table. (It assumes the item is a string, not an array or map)
      */
@@ -159,5 +200,14 @@ export class vbText extends vbGraphicObjectBase(PIXI.Text) implements vbLocalize
 
     clear() {
         this.text = '';
+    }
+
+    protected _fitScale() {}
+    protected _shrinkScale() {
+        if (this.fitBox.width == Infinity && this.fitBox.height == Infinity) return;
+        let scaleWidth = this.fitBox.width / this.width;
+        let scaleHeight = this.fitBox.height / this.height;
+        let scale = Math.min(1, scaleWidth, scaleHeight);
+        this.scale.set(scale);
     }
 }
