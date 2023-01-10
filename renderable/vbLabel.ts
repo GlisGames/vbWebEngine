@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import type { LocalizedDictionary, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
-import { PivotPoint, setPivotRule } from '@vb/core/vbTransform';
+import { PivotPoint, assignPivotPoint } from '@vb/core/vbTransform';
 import { c } from '@vb/misc/vbShared';
 import type { vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbImage } from './vbImage';
@@ -29,7 +29,7 @@ export class vbLabel<T extends vbGraphicObject> extends vbMinimalContainer imple
     get pivotRule() { return this._pivotRule; }
     set pivotRule(rule: PivotPoint) {
         this._pivotRule = rule;
-        setPivotRule(this, rule, this.getUnscaledSize());
+        assignPivotPoint(this.pivot, rule, this.getUnscaledSize());
     }
 
     /**

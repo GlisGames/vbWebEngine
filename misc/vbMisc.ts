@@ -7,8 +7,11 @@
 export * from './vbUtils';
 export * from './vbNumberFormat';
 
-export type { AssetList } from './vbLoader';
-export type { SpineData } from '@vb/renderable/vbSpineObject';
+export {
+    assignPivotPoint,
+    assignPivotPointRatio
+} from '@vb/core/vbTransform';
+
 export type {
     StyleItem,
     StyleList,
@@ -22,7 +25,10 @@ export type {
     LocalizedDictionary,
     LocalizationTable
 } from '@vb/core/vbLocalization';
+
 export type { InteractionFn } from '@vb/core/vbInteraction';
 export { shared } from './vbShared';
+export type { AssetList } from './vbLoader';
+export type { SpineData } from '@vb/renderable/vbSpineObject';
 
 export * from './WebUtils';

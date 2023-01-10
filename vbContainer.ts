@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import vbTweenGroup from './third-party/vbTweenGroup';
 import type { ContainerStyleItem, StyleList } from './core/vbStyle';
 import type { LocalizedDictionary, TextStyleList, vbLocalizedObject } from './core/vbLocalization';
-import { PivotPoint, type Size2, setPivotRule } from './core/vbTransform';
+import { PivotPoint, type Size2, assignPivotPoint } from './core/vbTransform';
 import { c } from './misc/vbShared';
 import type { vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
@@ -79,7 +79,7 @@ export class vbContainer extends vbMinimalContainer {
             this.desz.width = width;
             this.desz.height = height;
         }
-        setPivotRule(this, this._pivotRule, this.desz);
+        assignPivotPoint(this.pivot, this._pivotRule, this.desz);
         // If there's a debugBox, redraw with new size
         if (this._debugBox !== undefined) {
             let rect = new PIXI.Rectangle(0, 0, this.desz.width, this.desz.height);
@@ -93,7 +93,7 @@ export class vbContainer extends vbMinimalContainer {
     get pivotRule() { return this._pivotRule; }
     set pivotRule(rule: PivotPoint) {
         this._pivotRule = rule;
-        setPivotRule(this, rule, this.desz);
+        assignPivotPoint(this.pivot, rule, this.desz);
     }
 
     /**

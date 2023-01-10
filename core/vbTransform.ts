@@ -1,7 +1,16 @@
 import type * as PIXI from 'pixi.js';
 
 
+/**
+ * Refers to any object that contains `x` and `y` properties. \
+ * Namely, `PIXI.ObserverablePoint`, or any object derived from `PIXI.DisplayObject`.
+ * Examples can be any `vbGraphicObject`, or its properties like `position`, `scale`, etc.
+ */
 export type Pos2 = { x: number, y: number };
+/**
+ * Refers to any object that contains `width` and `height` properties. \
+ * Namely, `PIXI.Rectangle`, or any object derived from `PIXI.DisplayObject` like `vbGraphicObject`.
+ */
 export type Size2 = { width: number, height: number };
 
 export enum PivotPoint {
@@ -17,66 +26,80 @@ export enum PivotPoint {
     Custom
 }
 
-export function setPivotRule(obj: PIXI.Container, rule: PivotPoint, size: Size2) {
+/**
+ * Calculate the x and y relative to `size` based on pivot rule, then assign them to `point`.
+ * 
+ * @param [point] The point to be assigned to, can be `vbGraphicObject.position`, `pivot`, `anchor`, etc.
+ * @param [rule] Pivot rule
+ * @param [size] An object that contains `width` and `height`
+ */
+export function assignPivotPoint(point: PIXI.ObservablePoint, rule: PivotPoint, size: Size2) {
     switch (rule) {
         case PivotPoint.TopLeft: {
-            obj.pivot.set(0); break;
+            point.set(0); break;
         }
         case PivotPoint.TopMiddle: {
-            obj.pivot.set(size.width/2, 0); break;
+            point.set(size.width/2, 0); break;
         }
         case PivotPoint.TopRight: {
-            obj.pivot.set(size.width, 0); break;
+            point.set(size.width, 0); break;
         }
         case PivotPoint.Center: {
-            obj.pivot.set(size.width/2, size.height/2); break;
+            point.set(size.width/2, size.height/2); break;
         }
         case PivotPoint.MiddleLeft: {
-            obj.pivot.set(0, size.height/2); break;
+            point.set(0, size.height/2); break;
         }
         case PivotPoint.MiddleRight: {
-            obj.pivot.set(size.width, size.height/2); break;
+            point.set(size.width, size.height/2); break;
         }
         case PivotPoint.BottomLeft: {
-            obj.pivot.set(0, size.height); break;
+            point.set(0, size.height); break;
         }
         case PivotPoint.BottomMiddle: {
-            obj.pivot.set(size.width/2, size.height); break;
+            point.set(size.width/2, size.height); break;
         }
         case PivotPoint.BottomRight: {
-            obj.pivot.set(size.width, size.height); break;
+            point.set(size.width, size.height); break;
         }
     }
 }
 
-export function setSpritePivotRule(obj: PIXI.Sprite, rule: PivotPoint) {
+/**
+ * Calculate the x and y ratio (range from 0 to 1) based on pivot rule,
+ * then assign them to `point`.
+ * 
+ * @param [point] The point to be assigned to, can be `vbGraphicObject.position`, `pivot`, `anchor`, etc.
+ * @param [rule] Pivot rule
+ */
+export function assignPivotPointRatio(point: PIXI.ObservablePoint, rule: PivotPoint) {
     switch (rule) {
         case PivotPoint.TopLeft: {
-            obj.anchor.set(0); break;
+            point.set(0); break;
         }
         case PivotPoint.TopMiddle: {
-            obj.anchor.set(0.5, 0); break;
+            point.set(0.5, 0); break;
         }
         case PivotPoint.TopRight: {
-            obj.anchor.set(1, 0); break;
+            point.set(1, 0); break;
         }
         case PivotPoint.Center: {
-            obj.anchor.set(0.5); break;
+            point.set(0.5); break;
         }
         case PivotPoint.MiddleLeft: {
-            obj.anchor.set(0, 0.5); break;
+            point.set(0, 0.5); break;
         }
         case PivotPoint.MiddleRight: {
-            obj.anchor.set(1, 0.5); break;
+            point.set(1, 0.5); break;
         }
         case PivotPoint.BottomLeft: {
-            obj.anchor.set(0, 1); break;
+            point.set(0, 1); break;
         }
         case PivotPoint.BottomMiddle: {
-            obj.anchor.set(0.5, 1); break;
+            point.set(0.5, 1); break;
         }
         case PivotPoint.BottomRight: {
-            obj.anchor.set(1, 1); break;
+            point.set(1, 1); break;
         }
     }
 }

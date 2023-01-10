@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as PIXI from 'pixi.js';
-import { PivotPoint, type Size2, setPivotRule, setSpritePivotRule } from './core/vbTransform';
+import { PivotPoint, type Size2, assignPivotPoint, assignPivotPointRatio } from './core/vbTransform';
 import type { StyleItem } from './core/vbStyle';
 import { c, m } from './misc/vbShared';
 import type { vbContainer } from './vbContainer';
@@ -55,15 +55,15 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
         set pivotRule(rule: PivotPoint) {
             this._pivotRule = rule;
             if (this instanceof PIXI.Sprite) {
-                setSpritePivotRule(this, rule);
+                assignPivotPointRatio(this.anchor, rule);
                 // Since the sprite pivot rule only set the anchor
                 // we have to set pivot rule for debugBox as well or it won't be changed
                 if ((this._debugBox !== undefined) && this._debugBox.visible) {
-                    setPivotRule(this._debugBox, rule, this);
+                    assignPivotPoint(this._debugBox.pivot, rule, this.getUnscaledSize());
                 }
             }
             else {
-                setPivotRule(this, rule, this.getUnscaledSize());
+                assignPivotPoint(this.pivot, rule, this.getUnscaledSize());
             }
         }
 
@@ -189,7 +189,7 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
                 }
                 // update debugBox pivotRule
                 if (this instanceof PIXI.Sprite) {
-                    setPivotRule(this._debugBox, this._pivotRule, size);
+                    assignPivotPoint(this._debugBox.pivot, this._pivotRule, size);
                 }
                 this._debugBox.visible = true;
             }
