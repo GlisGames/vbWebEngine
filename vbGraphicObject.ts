@@ -18,7 +18,8 @@ export type TypeCons<T> = new (...args: any[]) => T;
 export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Other: TOther) {
     return class GraphicObject extends Other {
         /**
-         * `name` of an object is used for matching style or localized text style
+         * `name` of an object is used for matching style or localized text style. \
+         * Please use more specific names instead of something like "obj" or even properties since they can be used for other purposes.
          */
         name = '';
 
@@ -144,6 +145,9 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
                 this.width = item.wh[0];
                 this.height = item.wh[1];
             }
+            if (item.z !== undefined) {
+                this.layer = item.z;
+            }
         }
 
         addFilter(filter: PIXI.Filter) {
@@ -155,11 +159,11 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
 
 
         /** Different classes can have different debugBox fill style. */
-        protected static _debugFillStyle = (() => { let s = new PIXI.FillStyle();
+        protected static _debugFillStyle = (() => { const s = new PIXI.FillStyle();
             s.visible = false; return s;
         })();
         /** Different classes can have different debugBox line style. */
-        protected static _debugLineStyle = (() => { let s = new PIXI.LineStyle();
+        protected static _debugLineStyle = (() => { const s = new PIXI.LineStyle();
             s.visible = true; s.color = c.Blue; s.alpha = 1; s.width = 2; return s;
         })();
 
@@ -177,10 +181,10 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
         protected _showDebugBox(enable: boolean, size: Size2) {
             if (enable) {
                 if (this._debugBox === undefined) {
-                    let rect = new PIXI.Rectangle(0, 0, size.width, size.height);
+                    const rect = new PIXI.Rectangle(0, 0, size.width, size.height);
                     // Access the static variable by instance.
-                    let fillStyle = Object.getPrototypeOf(this).constructor._debugFillStyle;
-                    let lineStyle = Object.getPrototypeOf(this).constructor._debugLineStyle;
+                    const fillStyle = Object.getPrototypeOf(this).constructor._debugFillStyle;
+                    const lineStyle = Object.getPrototypeOf(this).constructor._debugLineStyle;
                     this._debugBox = new PIXI.Graphics();
                     this._debugBox.name = 'debugBox';
                     this._debugBox.geometry.drawShape(rect, fillStyle, lineStyle);
@@ -210,6 +214,10 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
  * Thus it's only suitable for some simple stuff (e.g. label), otherwise it is suggested that only use this as type hint.
  */
 export class vbGraphicObject extends vbGraphicObjectBase(PIXI.Container) {}
+
+/** Hierarchical strcture to reference vbGraphicObjects */
+export type RecursiveObjectStructure = { [name: string]: RecursiveObjectItem };
+export type RecursiveObjectItem = vbGraphicObject | RecursiveObjectStructure;
 
 
 /**

@@ -6,6 +6,10 @@ export type StyleItem = {
     s?: number,
     /** (scaled/stretched) width and height [w, h] */
     wh?: [number, number],
+    /** exit position [x, y], used solely for scene transition */
+    exitXY?: [number, number],
+    /** layer */
+    z?: number
 }
 
 /** Each name of vbGraphicObject maps a style item  */
@@ -16,7 +20,13 @@ export type StyleList = {
 export type StyleTable = {
     /** specified by the filename of json */
     name: string,
-    list: StyleList
+    /** desired resolution */
+    Resolution: [number, number],
+    /** stye list of current scene */
+    list: StyleList,
+    scenes: {
+        [sceneName: string]: StyleList
+    }
 }
 
 

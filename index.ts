@@ -17,7 +17,7 @@ export { default as vbTween } from './third-party/vbTween';
 export { default as vbTweenGroup } from './third-party/vbTweenGroup';
 
 export { PivotPoint } from './core/vbTransform';
-export type { Pos2, Size2 } from '@vb/core/vbTransform';
+export type { Pnt2, Size2 } from '@vb/core/vbTransform';
 export { vbState } from './core/vbState';
 export { vbScene, vbSceneTransition } from './core/vbScene';
 export type { vbLocalizedObject } from './core/vbLocalization';
@@ -60,7 +60,7 @@ export {
 } from './renderable/vbLabel';
 
 
-export * as vb from './misc/vbMisc';
+export * as vb from './vbMisc';
 export { c, m } from './misc/vbShared';
 export { customLoaderAddAssets } from './misc/vbLoader';
 export * from './misc/vbSound';

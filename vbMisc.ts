@@ -4,13 +4,19 @@
  */
 
 
-export * from './vbUtils';
-export * from './vbNumberFormat';
+export * from './misc/vbUtils';
+export * from './misc/vbNumberFormat';
+
+export type {
+    RecursiveObjectStructure,
+    RecursiveObjectItem
+} from './vbGraphicObject';
 
 export {
     assignPivotPoint,
-    assignPivotPointRatio
+    assignPivotPointRatio,
 } from '@vb/core/vbTransform';
+export type { RecursivePointStruct } from '@vb/core/vbTransform';
 
 export type {
     StyleItem,
@@ -27,8 +33,8 @@ export type {
 } from '@vb/core/vbLocalization';
 
 export type { InteractionFn } from '@vb/core/vbInteraction';
-export { shared } from './vbShared';
-export type { AssetList } from './vbLoader';
+export { shared } from './misc/vbShared';
+export type { AssetList } from './misc/vbLoader';
 export type { SpineData } from '@vb/renderable/vbSpineObject';
 
-export * from './WebUtils';
+export * from './misc/WebUtils';

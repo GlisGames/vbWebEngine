@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /** Any utility functions, extensions etc */
-import type { Pos2 } from '@vb/core/vbTransform';
+import type { Pnt2, RecursivePointStruct } from '@vb/core/vbTransform';
 import { m } from './vbShared';
 
 
@@ -40,7 +40,7 @@ declare global {
     }
 
     interface ObjectConstructor {
-        /** Remove all undefined properties, use at your own risk */
+        /** Remove all properties whose values are undefined, use at your own risk */
         removeUndef(obj: any): void;
     }
 
@@ -194,33 +194,31 @@ export function arrToObj<T>(arr: T[]) {
     return obj;
 }
 
-export function unbindPos(target: Pos2, source: [number, number]) {
+export function unbindPoint(target: Pnt2, source: [number, number]) {
     target.x = source[0], target.y = source[1];
 }
-export function assignPos(target: Pos2, source: Pos2) {
+export function assignPoint(target: Pnt2, source: Pnt2) {
     target.x = source.x, target.y = source.y;
 }
 
-type RecursivePositions = { [k: string]: PositionItem };
-type PositionItem = Pos2 | RecursivePositions;
-export function assignPosBatch(target: RecursivePositions, source: RecursivePositions) {
+export function assignPointBatch(target: RecursivePointStruct, source: RecursivePointStruct) {
     for (const key in target) {
         const targetObj = target[key];
         const sourceObj = source[key];
         if (sourceObj === undefined) continue;
         if (targetObj.x === undefined || targetObj.y === undefined)
-            assignPosBatch(<RecursivePositions>targetObj, <RecursivePositions>sourceObj);
+            assignPointBatch(<RecursivePointStruct>targetObj, <RecursivePointStruct>sourceObj);
         else
-            assignPos(<Pos2>targetObj, <Pos2>sourceObj);
+            assignPoint(<Pnt2>targetObj, <Pnt2>sourceObj);
     }
 }
 
-export function distance2(a: Pos2, b: Pos2) {
+export function distance2(a: Pnt2, b: Pnt2) {
     let dx = a.x - b.x, dy = a.y - b.y;
     return dx * dx + dy * dy;
 }
 
-export function distance(a: Pos2, b: Pos2) {
+export function distance(a: Pnt2, b: Pnt2) {
     let dx = a.x - b.x, dy = a.y - b.y;
     return Math.sqrt(dx * dx + dy * dy);
 }

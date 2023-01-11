@@ -2,16 +2,21 @@ import type * as PIXI from 'pixi.js';
 
 
 /**
- * Refers to any object that contains `x` and `y` properties. \
+ * Point. Refers to any object that contains `x` and `y` properties. \
  * Namely, `PIXI.ObserverablePoint`, or any object derived from `PIXI.DisplayObject`.
  * Examples can be any `vbGraphicObject`, or its properties like `position`, `scale`, etc.
  */
-export type Pos2 = { x: number, y: number };
+export type Pnt2 = { x: number, y: number };
 /**
  * Refers to any object that contains `width` and `height` properties. \
  * Namely, `PIXI.Rectangle`, or any object derived from `PIXI.DisplayObject` like `vbGraphicObject`.
  */
 export type Size2 = { width: number, height: number };
+
+/** Hierarchical strcture to reference points */
+export type RecursivePointStruct = { [k: string]: RecursivePointItem };
+type RecursivePointItem = Pnt2 | RecursivePointStruct;
+
 
 export enum PivotPoint {
     TopLeft,

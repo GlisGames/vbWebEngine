@@ -74,15 +74,15 @@ export abstract class vbGame extends PIXI.Application {
         // set the whole screen interactive so it can be clicked
         this.stage.interactive = true;
         // add the invisible rectangle to stage;
-        let rect = new vbRectangle(100, 100).fill(c.White, 0);
+        const rect = new vbRectangle(100, 100).fill(c.White, 0);
         this._bgRect = new vbPrimitive(rect);
         this.stage.addObj(this._bgRect, -9998);
     }
     
     async initAssets() {
         // file list json has all the assets that need to be fetched
-        let assets = <AssetList>(await load_json('assets-list.json'));
-        let loader = this.loader;
+        const assets = <AssetList>(await load_json('assets-list.json'));
+        const loader = this.loader;
         await load_assets(loader, assets);
 
         this._textures = get_textureMap(loader, assets);
@@ -169,6 +169,9 @@ export abstract class vbGame extends PIXI.Application {
         this.currLocale = this.getLocale(code);
     }
 
+    setScene(scene: vbScene) {
+        this.currScene = scene;
+    }
     getScene(name: string) {
         const r = this._scenes[name];
         if (r === undefined) throw new ReferenceError(`Cannot find scene ${name}`);
