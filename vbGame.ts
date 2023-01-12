@@ -159,6 +159,8 @@ export abstract class vbGame extends PIXI.Application {
     }
     setStyle(name: string) {
         this.currStyle = this.getStyle(name);
+        if (this.currScene.name !== undefined)
+            this.currStyle.list = this.currStyle.scenes[this.currScene.name];
     }
     getLocale(code: string) {
         const r = this._locales[code];
@@ -171,6 +173,8 @@ export abstract class vbGame extends PIXI.Application {
 
     setScene(scene: vbScene) {
         this.currScene = scene;
+        this.currStyle.list = this.currStyle.scenes[scene.name];
+        if (this.currStyle.list === undefined) throw new ReferenceError(`Cannot find style for scene ${scene.name}`);
     }
     getScene(name: string) {
         const r = this._scenes[name];

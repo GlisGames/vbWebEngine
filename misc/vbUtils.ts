@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /** Any utility functions, extensions etc */
-import type { Pnt2, RecursivePointStruct } from '@vb/core/vbTransform';
+import type { Pnt2, StructuralPoints } from '@vb/core/vbTransform';
 import { m } from './vbShared';
 
 
@@ -19,6 +19,8 @@ declare global {
     }
 
     interface ArrayConstructor {
+        /** compare elements of two arrays one by one sequentially */
+        isEqual(arr1: any[], arr2: any[]): boolean;
         /** Generate a list of numbers */
         rangeFrom(start: number, stop?: number, step?: number): number[];
         /** Return an iterator */
@@ -100,6 +102,13 @@ Array.prototype.difference = function(other: any[]) {
     return Array.from(this).filter(x => !other.includes(x));
 }
 
+Array.isEqual = function(arr1: any[], arr2: any[]) {
+    if (arr1.length != arr2.length) return false;
+    for (let i of Array.range(arr1.length)) {
+        if (arr1[i] != arr2[i]) return false;
+    }
+    return true;
+}
 Array.rangeFrom = function(start: number, stop?: number, step?: number) {
     if (step === undefined) step = 1;
     if (stop === undefined) {
@@ -197,17 +206,20 @@ export function arrToObj<T>(arr: T[]) {
 export function unbindPoint(target: Pnt2, source: [number, number]) {
     target.x = source[0], target.y = source[1];
 }
+export function unpackPoint(source: [number, number]): Pnt2 {
+    return { x:source[0], y:source[1] };
+}
 export function assignPoint(target: Pnt2, source: Pnt2) {
     target.x = source.x, target.y = source.y;
 }
 
-export function assignPointBatch(target: RecursivePointStruct, source: RecursivePointStruct) {
+export function assignPointBatch(target: StructuralPoints, source: StructuralPoints) {
     for (const key in target) {
         const targetObj = target[key];
         const sourceObj = source[key];
         if (sourceObj === undefined) continue;
         if (targetObj.x === undefined || targetObj.y === undefined)
-            assignPointBatch(<RecursivePointStruct>targetObj, <RecursivePointStruct>sourceObj);
+            assignPointBatch(<StructuralPoints>targetObj, <StructuralPoints>sourceObj);
         else
             assignPoint(<Pnt2>targetObj, <Pnt2>sourceObj);
     }

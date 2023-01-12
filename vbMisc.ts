@@ -7,16 +7,20 @@
 export * from './misc/vbUtils';
 export * from './misc/vbNumberFormat';
 
+export { isGraphicObject, isStructuralObjects } from './vbGraphicObject';
+export { isContainer } from './vbContainer';
+export { isLocalizedObject } from './core/vbLocalization';
+
 export type {
-    RecursiveObjectStructure,
-    RecursiveObjectItem
+    StructuralObjects,
+    StructuralObjectItem
 } from './vbGraphicObject';
 
 export {
     assignPivotPoint,
     assignPivotPointRatio,
-} from '@vb/core/vbTransform';
-export type { RecursivePointStruct } from '@vb/core/vbTransform';
+} from './core/vbTransform';
+export type { StructuralPoints } from './core/vbTransform';
 
 export type {
     StyleItem,
@@ -24,17 +28,17 @@ export type {
     StyleTable,
     ContainerStyleItem,
     ImageStyleItem
-} from '@vb/core/vbStyle';
+} from './core/vbStyle';
 export type {
     TextStyleItem,
     TextStyleList,
     LocalizedDictionary,
     LocalizationTable
-} from '@vb/core/vbLocalization';
+} from './core/vbLocalization';
 
-export type { InteractionFn } from '@vb/core/vbInteraction';
+export type { InteractionFn } from './core/vbInteraction';
 export { shared } from './misc/vbShared';
 export type { AssetList } from './misc/vbLoader';
-export type { SpineData } from '@vb/renderable/vbSpineObject';
+export type { SpineData } from './renderable/vbSpineObject';
 
 export * from './misc/WebUtils';

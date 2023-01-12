@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as PIXI from 'pixi.js';
 import type { LocalizedDictionary, TextStyleList } from '@vb/core/vbLocalization';
 import type { StyleList } from '@vb/core/vbStyle';
@@ -8,12 +9,15 @@ import type { vbImage } from './vbImage';
 import { vbPrimitive, vbRectangle } from './vbPrimitive';
 
 
+/**
+ * @note Not an actual vbContainer
+ */
 class _vbInteractiveViewport extends vbGraphicObjectBase(Viewport) {
-    sendObjToBack(vbObj: vbGraphicObject) {
-        vbContainer.prototype.sendObjToBack.call(this, vbObj);
+    sendObjToBack(obj: vbGraphicObject) {
+        vbContainer.prototype.sendObjToBack.call(this, obj);
     }
-    bringObjToFront(vbObj: vbGraphicObject) {
-        vbContainer.prototype.bringObjToFront.call(this, vbObj);
+    bringObjToFront(obj: vbGraphicObject) {
+        vbContainer.prototype.bringObjToFront.call(this, obj);
     }
 }
 /**
@@ -115,28 +119,34 @@ export class vbInteractiveViewport extends vbContainer {
         }
     }
 
-    addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
-        vbContainer.prototype.addObj.call(this.vp, vbObj, layer, name); return this;
+    addObj(obj: vbGraphicObject, layer=NaN, name='', reserved=false) {
+        vbContainer.prototype.addObj.call(this.vp, obj, layer, name, reserved); return this;
     }
-    addObjWithConfig(vbObj: vbGraphicObject) {
-        vbContainer.prototype.addObjWithConfig.call(this.vp, vbObj);
+    addObjWithConfig(obj: vbGraphicObject, styles: StyleList, textStyles?: TextStyleList) {
+        vbContainer.prototype.addObjWithConfig.call(this.vp, obj, styles, textStyles);
     }
-    removeObj(vbObj: vbGraphicObject) {
-        vbContainer.prototype.removeObj.call(this.vp, vbObj);
+    removeObj(obj: vbGraphicObject) {
+        vbContainer.prototype.removeObj.call(this.vp, obj);
     }
     update(deltaFrame: number) {
         this.tweens.update(globalThis.pgame.TotalMS);
-        for (let obj of this.vp.children) {
-            let vbObj = <vbGraphicObject>obj;
+        for (const child of this.vp.children) {
+            const vbObj = <vbGraphicObject>child;
             if (!vbObj.enable) continue;
             vbObj.update(deltaFrame);
         }
     }
-    applyChildrenStyle(style: StyleList) {
-        vbContainer.prototype.applyChildrenStyle.call(this.vp, style);
+    protected _applyChildrenStyle(styles: StyleList) {
+        (<any>vbContainer.prototype)._applyChildrenStyle.call(this.vp, styles);
     }
-    localizeChildren(dict: LocalizedDictionary, styles: TextStyleList) {
-        vbContainer.prototype.localizeChildren.call(this.vp, dict, styles);
+    protected _applyNestedStyle(styles: StyleList) {
+        (<any>vbContainer.prototype)._applyNestedStyle.call(this.vp, styles);
+    }
+    protected _localizeChildren(dict: LocalizedDictionary, textStyles?: TextStyleList) {
+        (<any>vbContainer.prototype)._localizeChildren.call(this.vp, dict, textStyles);
+    }
+    protected _localizeChildrenNested(dict: LocalizedDictionary, textStyles?: TextStyleList) {
+        (<any>vbContainer.prototype)._localizeChildrenNested.call(this.vp, dict, textStyles);
     }
 }
 

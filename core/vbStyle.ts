@@ -2,7 +2,7 @@
 export type StyleItem = {
     /** position [x, y] */
     xy?: [number, number],
-    /** scale */
+    /** scale (If set to 0 simply make it invisible) */
     s?: number,
     /** (scaled/stretched) width and height [w, h] */
     wh?: [number, number],

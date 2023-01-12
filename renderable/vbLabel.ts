@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import type { LocalizedDictionary, TextStyleItem, vbLocalizedObject } from '@vb/core/vbLocalization';
 import { PivotPoint, assignPivotPoint } from '@vb/core/vbTransform';
 import { c } from '@vb/misc/vbShared';
-import type { vbGraphicObject } from '@vb/vbGraphicObject';
+import { isGraphicObject, type vbGraphicObject } from '@vb/vbGraphicObject';
 import { vbImage } from './vbImage';
 import { vbMinimalContainer } from '@vb/vbContainer';
 import { vbPrimitive, vbShape } from './vbPrimitive';
@@ -50,7 +50,7 @@ export class vbLabel<T extends vbGraphicObject> extends vbMinimalContainer imple
     }
 
     addTxtObj(options: vbTextInitOptions) {
-        if (this.txt.applyStyle !== undefined) {
+        if (isGraphicObject(this.txt)) {
             this.removeChild(this.txt);
             this.txt.destroy();
         }

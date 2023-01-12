@@ -19,9 +19,11 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
     return class GraphicObject extends Other {
         /**
          * `name` of an object is used for matching style or localized text style. \
-         * Please use more specific names instead of something like "obj" or even properties since they can be used for other purposes.
+         * Use more specific names instead of "obj", "container" or even property names since they are reserved for other purposes.
          */
         name = '';
+        /** A reference to the `style.json` item (If exists) */
+        styleItem?: StyleItem;
 
         protected _enable = true;
         protected _pivotRule = PivotPoint.TopLeft;
@@ -134,12 +136,18 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
          * @param [item] make sure `item` is not undefined.
          */
         applyStyle(item: StyleItem) {
+            this.styleItem = item;
             if (item.xy !== undefined) {
                 this.x = item.xy[0];
                 this.y = item.xy[1];
             }
             if (item.s !== undefined) {
-                this.scale.set(item.s);
+                if (item.s != 0) {
+                    this.scale.set(item.s);
+                    this.visible = true;
+                }
+                else
+                    this.visible = false;
             }
             if (item.wh !== undefined) {
                 this.width = item.wh[0];
@@ -216,8 +224,15 @@ export function vbGraphicObjectBase<TOther extends TypeCons<PIXI.Container>>(Oth
 export class vbGraphicObject extends vbGraphicObjectBase(PIXI.Container) {}
 
 /** Hierarchical strcture to reference vbGraphicObjects */
-export type RecursiveObjectStructure = { [name: string]: RecursiveObjectItem };
-export type RecursiveObjectItem = vbGraphicObject | RecursiveObjectStructure;
+export type StructuralObjects = { [name: string]: StructuralObjectItem };
+export type StructuralObjectItem = vbGraphicObject | StructuralObjects;
+
+export function isGraphicObject(obj: PIXI.DisplayObject): obj is vbGraphicObject {
+    return (<vbGraphicObject>obj).applyStyle !== undefined;
+}
+export function isStructuralObjects(obj: StructuralObjectItem): obj is StructuralObjects {
+    return (<vbGraphicObject>obj).applyStyle === undefined;
+}
 
 
 /**

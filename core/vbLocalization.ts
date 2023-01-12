@@ -56,3 +56,7 @@ export interface vbLocalizedObject extends vbGraphicObject {
      */
     localize(dict: LocalizedDictionary, item?: TextStyleItem): void;
 } 
+
+export function isLocalizedObject(obj: PIXI.DisplayObject): obj is vbLocalizedObject {
+    return (<vbLocalizedObject>obj).localize !== undefined;
+}

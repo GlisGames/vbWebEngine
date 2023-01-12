@@ -1,31 +1,34 @@
 import * as PIXI from 'pixi.js';
 import vbTweenGroup from './third-party/vbTweenGroup';
 import type { ContainerStyleItem, StyleList } from './core/vbStyle';
-import type { LocalizedDictionary, TextStyleList, vbLocalizedObject } from './core/vbLocalization';
+import { isLocalizedObject, type LocalizedDictionary, type TextStyleList, type vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, type Size2, assignPivotPoint } from './core/vbTransform';
 import { c } from './misc/vbShared';
-import type { vbGraphicObject } from './vbGraphicObject';
+import { isGraphicObject, type vbGraphicObject } from './vbGraphicObject';
 import { vbGraphicObjectBase } from './vbGraphicObject';
 
 
 /**
- * Bare minimum empty container that only has `addObj` method,
- * used for simple objects that don't need to recursive apply style or localization to children.
+ * Bare minimum empty container that only has `addObj` method. \
+ * Used for simple objects that don't need to recursively update children, tweening, apply style and localizion.
+ * e.g. `vbLabel` is a bare minimum container.
  */
 export class vbMinimalContainer extends vbGraphicObjectBase(PIXI.Container) {
-    addObj(vbObj: vbGraphicObject, layer = NaN, name = '') {
-        if (!isNaN(layer)) {
-            vbObj.layer = layer;
-        }
-        if (name != '') {
-            vbObj.name = name;
-        }
-        this.addChild(vbObj);
+    /**
+     * @param [layer] Default is NaN (If you don't wish to change)
+     * @param [name] Default is '' (If you don't wish to change)
+     */
+    addObj(obj: vbGraphicObject, layer=NaN, name='') {
+        if (!isNaN(layer))
+            obj.layer = layer;
+        if (name != '')
+            obj.name = name;
+        this.addChild(obj);
         return this;
     }
 
-    removeObj(vbObj: vbGraphicObject) {
-        this.removeChild(vbObj);
+    removeObj(obj: vbGraphicObject) {
+        this.removeChild(obj);
     }
 
     /**
@@ -39,9 +42,10 @@ export class vbMinimalContainer extends vbGraphicObjectBase(PIXI.Container) {
 }
 
 /**
- * Recursively update children, apply style and localize.
+ * Fully functional container that supports
+ * recursively updating children, tweening, applying style and localization.
  * 
- * As is discussed at @see vbGraphicObject.debugBox, `width` and `height` can be dynamically changed, \
+ * As is discussed at `vbGraphicObject.debugBox`, `width` and `height` can be dynamically changed, \
  * So a `desiredSize` will better help with designing the layout, setting the pivot point etc.
  */
 export class vbContainer extends vbMinimalContainer {
@@ -56,6 +60,7 @@ export class vbContainer extends vbMinimalContainer {
      * @note [Can be used for type check]
      */
     desz: Size2 = { width:0, height:0 };
+    protected _reservedChilds?: vbGraphicObject[];
 
     constructor(desiredWidth?: number, desiredHeight?: number) {
         super();
@@ -97,55 +102,80 @@ export class vbContainer extends vbMinimalContainer {
     }
 
     /**
-     * Try to recursively apply style and localization as well.
-     * Usually it's only used when adding objects to root container. @see `vbSceneTransition`
+     * @param [layer] Default is NaN (If you don't wish to change)
+     * @param [name] Default is '' (If you don't wish to change)
+     * @param [reserved] Doesn't actually add into the container for display, add it into a reserve array for later use.
+     *                   It's usually waited to be added by scene transition.
      */
-    addObjWithConfig(vbObj: vbGraphicObject) {
-        const style = globalThis.pgame.currStyle.list;
-        const table = globalThis.pgame.currLocale;
-        // try to apply style
-        const item = style[vbObj.name];
-            if (item !== undefined)
-                vbObj.applyStyle(style[vbObj.name]);
-        // try to localize
-        const locObj = <vbLocalizedObject>vbObj;
-        if (locObj.localize !== undefined)
-            locObj.localize(table.dict, table.styles[locObj.name]);
-        // try to apply recursively
-        const container = <vbContainer>vbObj;
-        if (container.desz !== undefined) {
-            container.applyChildrenStyle(style);
-            container.localizeChildren(table.dict, table.styles);
+    addObj(obj: vbGraphicObject, layer=NaN, name='', reserved=false) {
+        if (!isNaN(layer))
+            obj.layer = layer;
+        if (name != '')
+            obj.name = name;
+        if (!reserved)
+            this.addChild(obj);
+        else {
+            if (this._reservedChilds === undefined) this._reservedChilds = [];
+            this._reservedChilds.push(obj);
         }
-        this.addChild(vbObj);
+        return this;
     }
 
-    sendObjToBack(vbObj: vbGraphicObject) {
+    /**
+     * Try to recursively apply style and localization as well.
+     * Usually it's only used during scene transition.
+     */
+    addObjWithConfig(obj: vbGraphicObject, styles: StyleList, textStyles?: TextStyleList) {
+        const dict = globalThis.pgame.currLocale.dict;
+        // try to apply style
+        const item = styles[obj.name];
+            if (item !== undefined)
+                obj.applyStyle(styles[obj.name]);
+        // try to localize
+        if (isLocalizedObject(obj))
+            obj.localize(dict, textStyles !== undefined ? textStyles[obj.name] : undefined);
+        // try to apply recursively
+        if (isContainer(obj)) {
+            obj.applyChildrenStyle(styles);
+            obj.localizeChildren(dict, textStyles);    
+        }
+        this.addChild(obj);
+    }
+
+    getReservedChildByName(name: string) {
+        if (this._reservedChilds === undefined) return null;
+        for (const child of this._reservedChilds) {
+            if (child.name == name) return child;
+        }
+        return null;
+    }
+
+    sendObjToBack(obj: vbGraphicObject) {
         // check if there's an object at the back
         const backObj = <vbGraphicObject>this.children.front();
-        if (backObj === vbObj) return;
+        if (backObj === obj) return;
         if (backObj.layer == vbContainer.minLayer) {
             // move forward the current back object
             backObj.layer++;
         }
-        vbObj.layer = vbContainer.minLayer;
+        obj.layer = vbContainer.minLayer;
     }
 
-    bringObjToFront(vbObj: vbGraphicObject) {
+    bringObjToFront(obj: vbGraphicObject) {
         // check if there's an object at the front
         const frontObj = <vbGraphicObject>this.children.back();
-        if (frontObj === vbObj) return;
+        if (frontObj === obj) return;
         if (frontObj.layer == vbContainer.maxLayer) {
             // move backward the current front object
             frontObj.layer--;
         }
-        vbObj.layer = vbContainer.maxLayer;
+        obj.layer = vbContainer.maxLayer;
     }
 
     update(deltaFrame: number) {
         this.tweens.update(globalThis.pgame.TotalMS);
-        for (const obj of this.children) {
-            const vbObj = <vbGraphicObject>obj;
+        for (const child of this.children) {
+            const vbObj = <vbGraphicObject>child;
             if (!vbObj.enable) continue;
             vbObj.update(deltaFrame);
         }
@@ -165,13 +195,13 @@ export class vbContainer extends vbMinimalContainer {
      * Recursively apply style to all the children.
      */
     // eslint-disable-next-line
-    applyChildrenStyle(style: StyleList) { }
+    applyChildrenStyle(styles: StyleList) { }
 
     /**
      * Recursively set language to all localized objects.
      */
     // eslint-disable-next-line
-    localizeChildren(dict: LocalizedDictionary, styles: TextStyleList) { }
+    localizeChildren(dict: LocalizedDictionary, styles?: TextStyleList) { }
 
     /**
      * Style item of a container can also be nested style list
@@ -190,59 +220,62 @@ export class vbContainer extends vbMinimalContainer {
         }
     }
 
-    protected _applyChildrenStyle(style: StyleList) {
-        for (const obj of this.children) {
-            const vbObj = <vbGraphicObject>obj;
-            if (vbObj.applyStyle === undefined) continue;
-
-            const item = style[vbObj.name];
+    protected _applyChildrenStyle(styles: StyleList) {
+        for (const child of this.children) {
+            if (!isGraphicObject(child)) continue;
+            const item = styles[child.name];
             if (item !== undefined)
-                vbObj.applyStyle(item);
+                child.applyStyle(item);
 
-            const container = <vbContainer>obj;
-            if (container.desz === undefined) continue;
-            container.applyChildrenStyle(style);
+            if (!isContainer(child)) continue;
+            child.applyChildrenStyle(styles);
         }
     }
-    protected _applyNestedStyle(style: StyleList) {
-        const nestedList = <StyleList>style[this.name];
+    protected _applyNestedStyle(styles: StyleList) {
+        const nestedList = styles[this.name] as StyleList;
         if (nestedList === undefined) return;
-        for (const obj of this.children) {
-            const vbObj = <vbGraphicObject>obj;
-            if (vbObj.applyStyle === undefined) continue;
-
-            const item = nestedList[vbObj.name];
+        for (const child of this.children) {
+            if (!isGraphicObject(child)) continue;
+            const item = nestedList[child.name];
             if (item !== undefined)
-                vbObj.applyStyle(item);
+                child.applyStyle(item);
 
-            const container = <vbContainer>obj;
-            if (container.desz === undefined) continue;
-            container.applyChildrenStyle(nestedList);
+            if (!isContainer(child)) continue;
+            child.applyChildrenStyle(nestedList);
         }
     }
 
-    protected _localizeChildren(dict: LocalizedDictionary, styles: TextStyleList) {
-        for (const obj of this.children) {
-            const locObj = <vbLocalizedObject>obj;
-            if (locObj.localize !== undefined)
-                locObj.localize(dict, styles[locObj.name]);
+    protected _localizeChildren(dict: LocalizedDictionary, textStyles?: TextStyleList) {
+        let localize: (obj: vbLocalizedObject) => void;
+        if (textStyles !== undefined)
+            localize = (obj) => obj.localize(dict, textStyles[obj.name]);
+        else
+            localize = (obj) => obj.localize(dict);
+        
+        for (const child of this.children) {
+            if (isLocalizedObject(child))
+                localize(child);
 
-            const container = <vbContainer>obj;
-            if (container.desz === undefined) continue;
-            container.localizeChildren(dict, styles);
+            if (!isContainer(child)) continue;
+            child.localizeChildren(dict, textStyles);
         }
     }
-    protected _localizeChildrenNested(dict: LocalizedDictionary, styles: TextStyleList) {
-        let nestedList = <TextStyleList>styles[this.name];
-        if (nestedList === undefined) nestedList = {};
-        for (const obj of this.children) {
-            const locObj = <vbLocalizedObject>obj;
-            if (locObj.localize !== undefined)
-                locObj.localize(dict, nestedList[locObj.name]);
+    protected _localizeChildrenNested(dict: LocalizedDictionary, textStyles?: TextStyleList) {
+        let localize: (obj: vbLocalizedObject) => void;
+        let nestedList: TextStyleList | undefined;
+        if (textStyles !== undefined && textStyles[this.name] !== undefined) {
+            nestedList = textStyles[this.name] as TextStyleList;
+            localize = (obj) => obj.localize(dict, (<TextStyleList>nestedList)[obj.name]);
+        }
+        else
+            localize = (obj) => obj.localize(dict);
+        
+        for (const child of this.children) {
+            if (isLocalizedObject(child))
+                localize(child);
 
-            const container = <vbContainer>obj;
-            if (container.desz === undefined) continue;
-            container.localizeChildren(dict, nestedList);
+            if (!isContainer(child)) continue;
+            child.localizeChildren(dict, nestedList);
         }
     }
 
@@ -271,6 +304,10 @@ export class vbContainer extends vbMinimalContainer {
     set debugBox(enable: boolean) {
         this._showDebugBox(enable, this.desz);
     }
+}
+
+export function isContainer(obj: PIXI.DisplayObject): obj is vbContainer {
+    return (<vbContainer>obj).desz !== undefined;
 }
 
 

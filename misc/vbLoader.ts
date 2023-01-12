@@ -181,16 +181,24 @@ export function get_styleMap(loader: PIXI.Loader, assets: AssetList) {
         let filename_stripped = filename.split('/')[1];
         filename_stripped = filename_stripped.split('.')[0];
 
-        const list = <StyleList>loader.resources[filename].data;
-        const resolution = list['Resolution'].wh;
-        if (resolution === undefined) throw Error("No resolution in style!");
-        delete list['Resolution'];
+        const sceneList = <Record<string, StyleList>>loader.resources[filename].data;
+        const resolution = <[number, number]><unknown>sceneList['Resolution'];
+        if (resolution === undefined || !Array.isArray(resolution)) throw Error("No resolution in style!");
+        delete sceneList['Resolution'];
+        // assign shared styles to each scene's style list
+        const sharedList = sceneList['shared'];
+        delete sceneList['shared'];
+        if (sharedList !== undefined) {
+            for (const list of Object.values(sceneList)) {
+                Object.assign(list, sharedList);
+            }
+        }
 
         styleMap[filename_stripped] = {
             name: filename_stripped,
             Resolution: resolution,
-            list: list,
-            scenes: {}
+            list: {},
+            scenes: sceneList
         };
     }
     return styleMap;

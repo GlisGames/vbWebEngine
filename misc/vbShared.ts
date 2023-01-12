@@ -58,13 +58,10 @@ export const m = {
 }
 
 
-class SharedObjects {
+export var shared = new class {
     colorFilter = {} as ColorOverlayFilter;
 
     init() {
         this.colorFilter = new ColorOverlayFilter();
     }
-}
-
-
-export var shared = new SharedObjects();
+};

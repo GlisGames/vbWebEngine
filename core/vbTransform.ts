@@ -14,8 +14,8 @@ export type Pnt2 = { x: number, y: number };
 export type Size2 = { width: number, height: number };
 
 /** Hierarchical strcture to reference points */
-export type RecursivePointStruct = { [k: string]: RecursivePointItem };
-type RecursivePointItem = Pnt2 | RecursivePointStruct;
+export type StructuralPoints = { [k: string]: StructuralPointItem };
+type StructuralPointItem = Pnt2 | StructuralPoints;
 
 
 export enum PivotPoint {
