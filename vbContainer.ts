@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import vbTweenGroup from './third-party/vbTweenGroup';
 import type { ContainerStyleItem, StyleList } from './core/vbStyle';
-import { isLocalizedObject, type LocalizedDictionary, type TextStyleList, type vbLocalizedObject } from './core/vbLocalization';
+import { type LocalizedDictionary, type TextStyleList, isLocalizedObject, type vbLocalizedObject } from './core/vbLocalization';
 import { PivotPoint, type Size2, assignPivotPoint } from './core/vbTransform';
 import { c } from './misc/vbShared';
 import { isGraphicObject, type vbGraphicObject } from './vbGraphicObject';

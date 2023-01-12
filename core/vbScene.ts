@@ -1,8 +1,9 @@
-import { isStructuralObjects, type StructuralObjectItem, type StructuralObjects, type vbGraphicObject } from '@vb/vbGraphicObject';
-import type { StyleList } from './vbStyle';
-import { isContainer, type vbContainer } from '@vb/vbContainer';
-import type { TextStyleList } from './vbLocalization';
+import { type StructuralObjectItem, type StructuralObjects, isStructuralObjects, type vbGraphicObject } from '@vb/vbGraphicObject';
 import type { StructuralPoints } from './vbTransform';
+import type { StyleList } from './vbStyle';
+import type { TextStyleList } from './vbLocalization';
+import { isContainer, type vbContainer } from '@vb/vbContainer';
+import { unpackPoint } from '@vb/misc/vbUtils';
 
 
 /**
@@ -281,7 +282,21 @@ export class vbSceneTransition {
      */
     static getEnterPositions(objs: StructuralObjects) {
         const positions: StructuralPoints = {};
-
+        for (const key in objs) {
+            const child = objs[key];
+            if (isStructuralObjects(child)) {
+                const _result = vbSceneTransition.getEnterPositions(child);
+                if (Object.keys(_result).length > 0) {
+                    positions[key] = _result;
+                }
+            }
+            else {
+                const enterXY = child.styleItem?.xy;
+                if (enterXY !== undefined) {
+                    positions[key] = unpackPoint(enterXY);
+                }
+            }
+        }
         return positions;
     }
 
@@ -291,7 +306,21 @@ export class vbSceneTransition {
      */
     static getExitPositions(objs: StructuralObjects) {
         const positions: StructuralPoints = {};
-
+        for (const key in objs) {
+            const child = objs[key];
+            if (isStructuralObjects(child)) {
+                const _result = vbSceneTransition.getExitPositions(child);
+                if (Object.keys(_result).length > 0) {
+                    positions[key] = _result;
+                }
+            }
+            else {
+                const exitXY = child.styleItem?.exitXY;
+                if (exitXY !== undefined) {
+                    positions[key] = unpackPoint(exitXY);
+                }
+            }
+        }
         return positions;
     }
 
@@ -302,7 +331,26 @@ export class vbSceneTransition {
      */
     static getMovePositions(objs: StructuralObjects, fromStyles: StyleList, toStyles: StyleList) {
         const positions: StructuralPoints = {};
+        for (const key in objs) {
+            if (key == 'container') continue;
+            const child = objs[key];
 
+            const fromXY = fromStyles[key]?.xy, toXY = toStyles[key]?.xy;
+            const isDifferent = fromXY !== undefined && toXY !== undefined && !Array.isEqual(fromXY, toXY);
+            
+            if (isStructuralObjects(child)) {
+                const _result = vbSceneTransition.getMovePositions(child, <StyleList>fromStyles[key], <StyleList>toStyles[key]);
+                if (isDifferent) {
+                    _result['container'] = unpackPoint(toXY);
+                }
+                if (Object.keys(_result).length > 0) {
+                    positions[key] = _result;
+                }
+            }
+            else if (isDifferent) {
+                positions[key] = unpackPoint(toXY);
+            }
+        }
         return positions;
     }
 }
